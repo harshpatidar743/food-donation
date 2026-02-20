@@ -1,0 +1,174 @@
+/* General Body Styling for Contact Us Page */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    line-height: 1.8;
+}
+
+/* Hero Section for Subpages */
+.hero-small {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&h=900&fit=crop') no-repeat center center/cover;
+    height: 40vh;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
+    padding: 20px;
+}
+
+.hero-small h1 {
+    font-size: 2.5em;
+    margin: 0;
+    color: #ffcc00;
+    animation: fadeInDown 1s ease;
+}
+
+.hero-small p {
+    font-size: 1.3em;
+    margin: 20px 0;
+    max-width: 600px;
+    color: #eeeeee;
+    animation: fadeIn 1.5s ease;
+}
+
+/* Form Section */
+.form-section {
+    background-color: #1a1a1a;
+    padding: 30px;
+    margin: 40px auto;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container input,
+.form-container textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1px solid #666666;
+    border-radius: 6px;
+    color: #ffffff;
+    background-color: #333333;
+    transition: border 0.2s ease, background-color 0.2s ease;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.form-container input:focus,
+.form-container textarea:focus {
+    border-color: #4caf50;
+    outline: none;
+    background-color: #444444;
+}
+
+/* Buttons */
+.button {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2em;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    transform: scale(1.05);
+}
+
+/* Content Section */
+.content-section {
+    background-color: #1a1a1a;
+    padding: 30px;
+    margin: 40px auto;
+    max-width: 800px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+}
+
+.content-section h2 {
+    color: #ffcc00;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+/* Contact Info */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-item {
+    background-color: #333333;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.contact-item h3 {
+    color: #4caf50;
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+}
+
+.contact-item p {
+    margin: 0;
+    color: #eeeeee;
+    font-size: 1.1em;
+}
+
+/* Footer */
+footer {
+    background-color: #000000;
+    color: #ffcc00;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 50px;
+}
+
+footer p {
+    margin: 0;
+    color: #ffff99;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

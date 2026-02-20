@@ -1,0 +1,153 @@
+/* Container for the main content */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* General Body Styling for Index Page */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); /* Dark grey to black gradient for strong contrast */
+    color: #ffffff; /* White text for sharp contrast */
+    margin: 0;
+    padding: 0;
+    line-height: 1.8;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;
+    height: 50vh;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.9); /* Strong shadow for clarity */
+    padding: 20px;
+}
+
+.hero h1 {
+    font-size: 3em;
+    margin: 0;
+    color: #ffcc00; /* Bright yellow for visibility */
+    animation: fadeInDown 1s ease;
+}
+
+.hero p {
+    font-size: 1.5em;
+    margin: 20px 0;
+    max-width: 600px;
+    color: #eeeeee; /* Soft white */
+    animation: fadeIn 1.5s ease;
+}
+
+.hero-button {
+    padding: 15px 30px;
+    background-color: #ffcc00; /* Bright yellow for CTA */
+    color: #000000; /* Black text for contrast */
+    font-size: 1.2em;
+    text-decoration: none;
+    border-radius: 30px;
+    border: 2px solid #000000;
+    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+}
+
+.hero-button:hover {
+    transform: scale(1.1);
+    background-color: #ff9900; /* Orange for hover effect */
+    border-color: #ffffff; /* White border on hover */
+}
+
+/* Options Section */
+.options {
+    display: flex;
+    justify-content: space-around;
+    padding: 50px 0;
+    background-color: #262626; /* Dark grey for contrast with white text */
+}
+
+.option {
+    background-color: #333333; /* Medium grey for card background */
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Subtle shadow */
+    width: 30%;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #ffffff; /* White text for contrast */
+}
+
+.option:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.option h2 {
+    font-size: 2em;
+    color: #4caf50; /* Bright green for headings */
+    margin-bottom: 15px;
+}
+
+.option p {
+    font-size: 1.2em;
+    color: #cccccc; /* Light grey for body text */
+    margin-bottom: 30px;
+}
+
+.button {
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #ff5733, #c70039); /* Red-orange gradient for buttons */
+    color: #ffffff; /* White text */
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, #c70039, #ff5733); /* Reverse gradient on hover */
+    transform: scale(1.05);
+}
+
+/* Footer */
+footer {
+    background-color: #000000; /* Black for strong contrast */
+    color: #ffcc00; /* Bright yellow text */
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 50px;
+}
+
+footer p {
+    margin: 0;
+    color: #ffff99; /* Softer yellow for footer text */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
