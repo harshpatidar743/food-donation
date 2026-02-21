@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(cors());
 
 // MongoDB connection
-mongoose.connect('mongodb+srv://harshpatidar743_db_user:RkoSPupdsRwTNIHC@fooddonation.hhlkhmp.mongodb.net/?retryWrites=true&w=majority&appName=fooddonation/foodDonation', { family: 4, autoIndex: true })
+mongoose.connect(process.env.MONGO_URI, { family: 4, autoIndex: true })
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log(err));
 
@@ -64,8 +64,10 @@ app.get('/donationsbylocation', async (req, res) => {
   
 
 // Server listening
-const PORT = 4000;
-app.listen(PORT, () => console.log('Server running on port', PORT));
+const PORT = process.env.PORT || 5000; 
+app.listen(PORT, () => { 
+  console.log(`Server running on port ${PORT}`); 
+});
 
 
 const path = require('path');
