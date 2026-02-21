@@ -1,38 +1,36 @@
 "use client"
 
-import style from './style.css'
 import React, { useEffect, useState } from 'react';
 import axios from 'axios'
 import toast from 'react-hot-toast';
 
 const Page = () => {
-   
+
     const [formData, setFormData] = useState({
         donorName: '',
         foodType: '',
         quantity: '',
         location: '',
-      });
+    });
 
-    const [donations, setDonations] = useState([]);
+    const [donations, setDonations] = useState<{donorName: string, foodType: string, quantity: string, location: string}[]>([]);
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setIsClient(true); 
+        setIsClient(true);
 
         const fetchData = async () => {
             const toastId = isClient && toast.loading('fetching data ...');
             try {
-const response = await axios.get('https://food-donation-uwmq.onrender.com/donations');
+                const response = await axios.get('https://food-donation-uwmq.onrender.com/donations');
                 console.log("Fetched donations: ", response);
                 setDonations(response.data);
-                
                 isClient && toast.success("Data fetched successfully");
             } catch (error) {
                 isClient && toast.error("Error occurred");
                 console.error("Error fetching donations: ", error);
             } finally {
-                isClient && toast.dismiss(toastId);
+                if (isClient && toastId) toast.dismiss(toastId);
             }
         };
 
@@ -42,25 +40,25 @@ const response = await axios.get('https://food-donation-uwmq.onrender.com/donati
     const handleInputChange = (e: any) => {
         const { id, value } = e.target;
         setFormData({
-          ...formData,
-          [id]: value,
+            ...formData,
+            [id]: value,
         });
     };
 
     const handleSubmit = async (e: any) => {
-        e.preventDefault(); 
+        e.preventDefault();
         const toastId = isClient && toast.loading('Donating...');
         try {
-         
+
             setDonations((prevDonations) => [...prevDonations, formData]);
 
             console.log(formData);
 
-const response = await axios.post('https://food-donation-uwmq.onrender.com/donate', formData);
+            const response = await axios.post('https://food-donation-uwmq.onrender.com/donate', formData);
 
             console.log("Response: ", response);
 
-   
+
             setFormData({
                 donorName: '',
                 foodType: '',
@@ -73,12 +71,12 @@ const response = await axios.post('https://food-donation-uwmq.onrender.com/donat
             isClient && toast.error('Error occurred');
             console.log("This is the error: ", error);
         } finally {
-            isClient && toast.dismiss(toastId);
+            if (isClient && toastId) toast.dismiss(toastId);
         }
     };
 
     return (
-        <div className={style.style}>
+        <div>
             <header>
                 <div className="hero-small">
                     <h1>Donate Your Excess Food</h1>

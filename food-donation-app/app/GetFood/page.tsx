@@ -1,14 +1,13 @@
 "use client"
 
 import React, { useState } from 'react';
-import style from './style.css';
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
 
 const Page = () => {
   const [location, setLocation] = useState('');
-  const [availableDonations, setAvailableDonations] = useState([]);
+  const [availableDonations, setAvailableDonations] = useState<{id?: number, donorName: string, foodType: string, location: string}[]>([]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -43,7 +42,7 @@ finally{
   };
 
   return (
-    <div className={style.container}>
+    <div>
       <header>
         <div className="hero-small">
           <h1>Find Food Donations Near You</h1>

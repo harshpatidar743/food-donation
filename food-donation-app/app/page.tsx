@@ -1,10 +1,8 @@
 "use client";
 
-import styles from './styles.css';
-
 export default function Home() {
   return (
-    <div className={styles.container}>
+    <div className="container">
       <header>
         <div className="hero">
           <h1>Join the Fight Against Food Waste</h1>

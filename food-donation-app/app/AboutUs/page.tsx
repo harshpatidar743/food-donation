@@ -1,11 +1,10 @@
 "use client"
 
-import style from './style.css'
 import React from 'react';
 
 const Page = () => {
     return (
-        <div className={style.style}>
+        <div>
             <header>
                 <div className="hero-small">
                     <h1>About Us</h1>

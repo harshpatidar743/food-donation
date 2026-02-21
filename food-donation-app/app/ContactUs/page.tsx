@@ -1,6 +1,5 @@
 "use client"
 
-import style from './style.css'
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -36,7 +35,7 @@ const Page = () => {
     };
 
     return (
-        <div className={style.style}>
+        <div>
             <header>
                 <div className="hero-small">
                     <h1>Contact Us</h1>
