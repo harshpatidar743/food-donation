@@ -21,7 +21,7 @@ const Page = () => {
     
     console.log(`Searching for food in: ${location}`);
 
-    const response = await axios.get('http://localhost:4000/donationsbylocation', {
+const response = await axios.get('https://food-donation-uwmq.onrender.com/donationsbylocation', {
   params: {
     location: location,
        },

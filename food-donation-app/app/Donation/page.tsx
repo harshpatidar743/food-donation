@@ -23,7 +23,7 @@ const Page = () => {
         const fetchData = async () => {
             const toastId = isClient && toast.loading('fetching data ...');
             try {
-                const response = await axios.get('http://localhost:4000/donations');
+const response = await axios.get('https://food-donation-uwmq.onrender.com/donations');
                 console.log("Fetched donations: ", response);
                 setDonations(response.data);
                 
@@ -56,7 +56,7 @@ const Page = () => {
 
             console.log(formData);
 
-            const response = await axios.post('http://localhost:4000/donate', formData);
+const response = await axios.post('https://food-donation-uwmq.onrender.com/donate', formData);
 
             console.log("Response: ", response);
 
