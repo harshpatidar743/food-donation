@@ -1,13 +1,3 @@
-/* General Body Styling for Donation and Get-Food Pages */
-body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); /* Dark gradient */
-    color: #ffffff; /* White text for contrast */
-    margin: 0;
-    padding: 0;
-    line-height: 1.8;
-}
-
 /* Hero Section for Subpages */
 .hero-small {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1600&h=900&fit=crop') no-repeat center center/cover;
@@ -17,14 +7,16 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9); /* Strong shadow for text clarity */
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
     padding: 20px;
+    margin: 0;
+    width: 100%;
 }
 
 .hero-small h1 {
     font-size: 2.5em;
     margin: 0;
-    color: #ffcc00; /* Bright yellow for headings */
+    color: #ffcc00;
     animation: fadeInDown 1s ease;
 }
 
@@ -32,19 +24,19 @@ body {
     font-size: 1.3em;
     margin: 20px 0;
     max-width: 600px;
-    color: #eeeeee; /* Softer white */
+    color: #eeeeee;
     animation: fadeIn 1.5s ease;
 }
 
 /* Form Section */
 .form-section {
-    background-color: #1a1a1a; /* Dark background for forms */
+    background-color: #1a1a1a;
     padding: 30px;
     margin: 40px auto;
     max-width: 600px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow */
-    color: #ffffff; /* White text */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
 }
 
 .form-container {
@@ -56,24 +48,25 @@ body {
     width: 100%;
     padding: 12px 15px;
     margin-bottom: 20px;
-    border: 1px solid #666666; /* Medium grey border */
+    border: 1px solid #666666;
     border-radius: 6px;
-    color: #ffffff; /* White text for input fields */
-    background-color: #333333; /* Dark input background */
+    color: #ffffff;
+    background-color: #333333;
     transition: border 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box;
 }
 
 .form-container input:focus {
-    border-color: #4caf50; /* Green border on focus */
+    border-color: #4caf50;
     outline: none;
-    background-color: #444444; /* Slightly lighter background on focus */
+    background-color: #444444;
 }
 
 /* Buttons */
 .button {
     padding: 12px 30px;
-    background: linear-gradient(135deg, #4caf50, #2e7d32); /* Green gradient for buttons */
-    color: #ffffff; /* White text */
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     font-size: 1.2em;
@@ -86,19 +79,19 @@ body {
 }
 
 .button:hover {
-    background: linear-gradient(135deg, #2e7d32, #4caf50); /* Reverse gradient on hover */
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
     transform: scale(1.05);
 }
 
 /* Donation List Section */
 .donation-list-section {
-    background-color: #262626; /* Dark grey for list section */
+    background-color: #1a1a1a;
     padding: 30px;
     margin: 40px auto;
     max-width: 800px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow */
-    color: #ffffff; /* White text */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
 }
 
 ul {
@@ -107,24 +100,24 @@ ul {
 }
 
 ul li {
-    background-color: #333333; /* Medium grey for list items */
+    background-color: #333333;
     padding: 15px;
     margin-bottom: 12px;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); /* Stronger shadow for items */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     transition: background 0.3s ease, box-shadow 0.2s ease;
-    color: #ffffff; /* White text for list items */
+    color: #ffffff;
 }
 
 ul li:hover {
-    background-color: #444444; /* Slightly lighter grey on hover */
+    background-color: #444444;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
 /* Footer */
 footer {
-    background-color: #000000; /* Black footer background */
-    color: #ffcc00; /* Bright yellow text */
+    background-color: #000000;
+    color: #ffcc00;
     text-align: center;
     padding: 20px 0;
     margin-top: 50px;
@@ -132,7 +125,7 @@ footer {
 
 footer p {
     margin: 0;
-    color: #ffff99; /* Softer yellow for footer text */
+    color: #ffff99;
 }
 
 /* Animations */
@@ -153,72 +146,5 @@ footer p {
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero-small {
-        height: 30vh;
-        padding: 15px;
-    }
-
-    .hero-small h1 {
-        font-size: 1.8em;
-    }
-
-    .hero-small p {
-        font-size: 1em;
-    }
-
-    .form-section {
-        padding: 20px;
-        margin: 20px auto;
-    }
-
-    .form-section h2 {
-        font-size: 1.4em;
-    }
-
-    .donation-list-section {
-        padding: 20px;
-        margin: 20px auto;
-    }
-
-    .donation-list-section h2 {
-        font-size: 1.4em;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-small h1 {
-        font-size: 1.5em;
-    }
-
-    .hero-small p {
-        font-size: 0.9em;
-    }
-
-    .form-section {
-        padding: 15px;
-    }
-
-    .form-container input {
-        padding: 10px;
-        font-size: 0.9em;
-    }
-
-    .button {
-        padding: 10px 20px;
-        font-size: 1em;
-    }
-
-    ul li {
-        padding: 12px;
-        font-size: 0.9em;
-    }
-
-    footer {
-        padding: 15px 10px;
     }
 }

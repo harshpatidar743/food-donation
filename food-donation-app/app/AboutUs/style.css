@@ -1,17 +1,6 @@
-/* General Body Styling for About Page */
-body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
-    line-height: 1.8;
-}
-
 /* Hero Section for Subpages */
 .hero-small {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1600&h=900&fit=crop') no-repeat center center/cover;
-    height: 40vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;    height: 40vh;
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -19,6 +8,8 @@ body {
     align-items: center;
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
     padding: 20px;
+    margin: 0;
+    width: 100%;
 }
 
 .hero-small h1 {
@@ -114,57 +105,5 @@ footer p {
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero-small {
-        height: 30vh;
-        padding: 15px;
-    }
-
-    .hero-small h1 {
-        font-size: 1.8em;
-    }
-
-    .hero-small p {
-        font-size: 1em;
-    }
-
-    .content-section {
-        padding: 20px;
-        margin: 20px auto;
-    }
-
-    .content-section h2 {
-        font-size: 1.4em;
-    }
-
-    .content-section p {
-        font-size: 1em;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-small h1 {
-        font-size: 1.5em;
-    }
-
-    .hero-small p {
-        font-size: 0.9em;
-    }
-
-    .content-section {
-        padding: 15px;
-    }
-
-    .feature-list li {
-        padding: 12px;
-        font-size: 0.95em;
-    }
-
-    footer {
-        padding: 15px 10px;
     }
 }

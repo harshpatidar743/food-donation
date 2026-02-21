@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
+import './style.css';
 import toast from 'react-hot-toast';
 
 const Page = () => {

@@ -1,21 +1,27 @@
 /* Container for the main content */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
 /* General Body Styling for Index Page */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); /* Dark grey to black gradient for strong contrast */
-    color: #ffffff; /* White text for sharp contrast */
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    color: #ffffff;
     margin: 0;
     padding: 0;
     line-height: 1.8;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* Hero Section */
@@ -27,14 +33,14 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.9); /* Strong shadow for clarity */
+    text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.9);
     padding: 20px;
 }
 
 .hero h1 {
     font-size: 3em;
     margin: 0;
-    color: #ffcc00; /* Bright yellow for visibility */
+    color: #ffcc00;
     animation: fadeInDown 1s ease;
 }
 
@@ -42,14 +48,14 @@ body {
     font-size: 1.5em;
     margin: 20px 0;
     max-width: 600px;
-    color: #eeeeee; /* Soft white */
+    color: #eeeeee;
     animation: fadeIn 1.5s ease;
 }
 
 .hero-button {
     padding: 15px 30px;
-    background-color: #ffcc00; /* Bright yellow for CTA */
-    color: #000000; /* Black text for contrast */
+    background-color: #ffcc00;
+    color: #000000;
     font-size: 1.2em;
     text-decoration: none;
     border-radius: 30px;
@@ -59,8 +65,8 @@ body {
 
 .hero-button:hover {
     transform: scale(1.1);
-    background-color: #ff9900; /* Orange for hover effect */
-    border-color: #ffffff; /* White border on hover */
+    background-color: #ff9900;
+    border-color: #ffffff;
 }
 
 /* Options Section */
@@ -68,18 +74,18 @@ body {
     display: flex;
     justify-content: space-around;
     padding: 50px 0;
-    background-color: #262626; /* Dark grey for contrast with white text */
+    background-color: #1a1a1a;
 }
 
 .option {
-    background-color: #333333; /* Medium grey for card background */
+    background-color: #333333;
     padding: 40px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Subtle shadow */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     width: 30%;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
-    color: #ffffff; /* White text for contrast */
+    color: #ffffff;
 }
 
 .option:hover {
@@ -89,20 +95,20 @@ body {
 
 .option h2 {
     font-size: 2em;
-    color: #4caf50; /* Bright green for headings */
+    color: #4caf50;
     margin-bottom: 15px;
 }
 
 .option p {
     font-size: 1.2em;
-    color: #cccccc; /* Light grey for body text */
+    color: #cccccc;
     margin-bottom: 30px;
 }
 
 .button {
     padding: 15px 25px;
-    background: linear-gradient(135deg, #ff5733, #c70039); /* Red-orange gradient for buttons */
-    color: #ffffff; /* White text */
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     font-size: 1.2em;
@@ -113,14 +119,14 @@ body {
 }
 
 .button:hover {
-    background: linear-gradient(135deg, #c70039, #ff5733); /* Reverse gradient on hover */
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
     transform: scale(1.05);
 }
 
 /* Footer */
 footer {
-    background-color: #000000; /* Black for strong contrast */
-    color: #ffcc00; /* Bright yellow text */
+    background-color: #000000;
+    color: #ffcc00;
     text-align: center;
     padding: 20px 0;
     margin-top: 50px;
@@ -128,7 +134,7 @@ footer {
 
 footer p {
     margin: 0;
-    color: #ffff99; /* Softer yellow for footer text */
+    color: #ffff99;
 }
 
 /* Animations */
@@ -172,11 +178,14 @@ footer p {
         flex-direction: column;
         padding: 30px 20px;
         gap: 20px;
+        align-items: center;
     }
 
     .option {
         width: 100%;
+        max-width: 400px;
         padding: 25px;
+        box-sizing: border-box;
     }
 
     .option h2 {
@@ -189,12 +198,19 @@ footer p {
 }
 
 @media (max-width: 480px) {
+    .hero {
+        height: 35vh;
+        padding: 10px;
+    }
+
     .hero h1 {
         font-size: 1.6em;
+        text-align: center;
     }
 
     .hero p {
         font-size: 1em;
+        text-align: center;
     }
 
     .hero-button {
@@ -202,8 +218,22 @@ footer p {
         font-size: 1em;
     }
 
+    .options {
+        padding: 20px 15px;
+        gap: 15px;
+    }
+
     .option {
-        padding: 20px;
+        padding: 20px 15px;
+    }
+
+    .option h2 {
+        font-size: 1.3em;
+    }
+
+    .option p {
+        font-size: 0.9em;
+        margin-bottom: 20px;
     }
 
     footer {
