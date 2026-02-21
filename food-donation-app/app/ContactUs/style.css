@@ -172,3 +172,66 @@ footer p {
         transform: translateY(0);
     }
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-small {
+        height: 30vh;
+        padding: 15px;
+    }
+
+    .hero-small h1 {
+        font-size: 1.8em;
+    }
+
+    .hero-small p {
+        font-size: 1em;
+    }
+
+    .form-section {
+        padding: 20px;
+        margin: 20px auto;
+    }
+
+    .form-section h2 {
+        font-size: 1.4em;
+    }
+
+    .content-section {
+        padding: 20px;
+        margin: 20px auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-small h1 {
+        font-size: 1.5em;
+    }
+
+    .hero-small p {
+        font-size: 0.9em;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+
+    .form-container input,
+    .form-container textarea {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+
+    .contact-item {
+        padding: 15px;
+    }
+
+    footer {
+        padding: 15px 10px;
+    }
+}

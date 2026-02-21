@@ -155,3 +155,70 @@ footer p {
         transform: translateY(0);
     }
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-small {
+        height: 30vh;
+        padding: 15px;
+    }
+
+    .hero-small h1 {
+        font-size: 1.8em;
+    }
+
+    .hero-small p {
+        font-size: 1em;
+    }
+
+    .form-section {
+        padding: 20px;
+        margin: 20px auto;
+    }
+
+    .form-section h2 {
+        font-size: 1.4em;
+    }
+
+    .donation-list-section {
+        padding: 20px;
+        margin: 20px auto;
+    }
+
+    .donation-list-section h2 {
+        font-size: 1.4em;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-small h1 {
+        font-size: 1.5em;
+    }
+
+    .hero-small p {
+        font-size: 0.9em;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+
+    .form-container input {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+
+    ul li {
+        padding: 12px;
+        font-size: 0.9em;
+    }
+
+    footer {
+        padding: 15px 10px;
+    }
+}
