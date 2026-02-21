@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./styles.css";
+import "./AboutUs/style.css";
+import "./ContactUs/style.css";
+import "./Donation/style.css";
+import "./GetFood/style.css";
 import { Toaster } from 'react-hot-toast';
 import Navbar from "./components/Navbar";
 
