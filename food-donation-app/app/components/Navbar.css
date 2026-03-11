@@ -110,6 +110,48 @@
   width: 60%;
 }
 
+/* Auth Links */
+.navbar-link.auth-link {
+  padding: 8px 16px;
+  margin-left: 5px;
+}
+
+.navbar-link.register-link {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: #ffffff;
+  border-radius: 20px;
+}
+
+.navbar-link.register-link:hover {
+  background: linear-gradient(135deg, #2e7d32, #4caf50);
+  color: #ffffff;
+}
+
+.navbar-link.logout-link {
+  background: linear-gradient(135deg, #c62828, #b71c1c);
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  margin-left: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.navbar-link.logout-link:hover {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  color: #ffffff;
+}
+
+/* Hide auth buttons in main menu on mobile - show in auth section instead */
+@media (min-width: 769px) {
+  .navbar .navbar-menu .navbar-item.auth-item {
+    display: none;
+  }
+}
+
 /* Hamburger Menu */
 .hamburger {
   display: none;

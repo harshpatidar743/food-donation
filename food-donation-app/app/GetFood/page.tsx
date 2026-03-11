@@ -5,6 +5,7 @@ import './style.css';
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const Page = () => {
   const [location, setLocation] = useState('');
@@ -21,7 +22,7 @@ const Page = () => {
     
     console.log(`Searching for food in: ${location}`);
 
-const response = await axios.get('https://food-donation-uwmq.onrender.com/donationsbylocation', {
+const response = await axios.get(`${API_BASE_URL}/donationsbylocation`, {
   params: {
     location: location,
        },
@@ -72,7 +73,7 @@ finally{
           <ul id="food-list">
             {availableDonations.map((donation) => (
               <li key={donation.id}>
-                <strong>{donation.donorName}</strong>: {donation.foodType} in {donation.location}
+                <strong>{donation.donorId?.name}</strong> is donating {donation.quantity} units of {donation.foodType} in {donation.location}
               </li>
             ))}
           </ul>

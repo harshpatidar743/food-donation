@@ -105,6 +105,83 @@ body {
     margin-bottom: 30px;
 }
 
+.donor-links {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.donor-links .button {
+    flex: 1;
+    text-align: center;
+    padding: 12px 20px;
+    font-size: 1em;
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+}
+
+.register-btn {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+}
+
+.register-btn:hover {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+}
+
+.or-text {
+    color: #888888;
+    margin: 15px 0;
+    font-size: 0.9em;
+}
+
+/* Info Section */
+.info-section {
+    display: flex;
+    justify-content: space-around;
+    padding: 50px 20px;
+    background-color: #1a1a1a;
+}
+
+.info-card {
+    background-color: #333333;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    width: 30%;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #ffffff;
+}
+
+.info-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.info-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.info-card h3 {
+    font-size: 1.4em;
+    color: #4caf50;
+    margin-bottom: 10px;
+}
+
+.info-card p {
+    font-size: 1em;
+    color: #cccccc;
+    margin: 0;
+}
+
 .button {
     padding: 15px 25px;
     background: linear-gradient(135deg, #4caf50, #2e7d32);
@@ -194,6 +271,24 @@ footer p {
 
     .option p {
         font-size: 1em;
+    }
+
+    .donor-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .or-text {
+        margin: 10px 0;
+    }
+
+    .info-section {
+        flex-direction: column;
+        padding: 30px 20px;
+    }
+
+    .info-card {
+        width: 100%;
     }
 }
 

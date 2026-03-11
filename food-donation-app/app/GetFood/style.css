@@ -11,7 +11,7 @@ body {
 /* Hero Section for Subpages */
 .hero-small {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;
-    height: 40vh;
+    height: 35vh;
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -19,6 +19,7 @@ body {
     align-items: center;
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9); /* Strong shadow for text */
     padding: 20px;
+    margin-top: 60px;
 }
 
 .hero-small h1 {
@@ -101,12 +102,12 @@ body {
     color: #ffffff; /* White text */
 }
 
-ul {
+.donation-list-section ul {
     list-style-type: none;
     padding: 0;
 }
 
-ul li {
+.donation-list-section ul li {
     background-color: #333333; /* Medium grey for list items */
     padding: 15px;
     margin-bottom: 12px;
@@ -116,7 +117,7 @@ ul li {
     color: #ffffff; /* White text for list items */
 }
 
-ul li:hover {
+.donation-list-section ul li:hover {
     background-color: #444444; /* Slightly lighter grey on hover */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
@@ -213,7 +214,7 @@ footer p {
         font-size: 1em;
     }
 
-    ul li {
+    .donation-list-section ul li {
         padding: 12px;
         font-size: 0.9em;
     }

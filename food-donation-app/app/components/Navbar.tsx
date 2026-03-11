@@ -26,6 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +37,20 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const donorId = localStorage.getItem("donorId");
+      setIsAuthenticated(!!donorId);
+    };
+
+    checkAuth();
+    
+    // Check auth on storage changes
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [pathname]);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -43,6 +58,28 @@ const Navbar: React.FC<NavbarProps> = ({
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("donorId");
+    localStorage.removeItem("donorName");
+    setIsAuthenticated(false);
+    closeMenu();
+  };
+
+  // Determine which menu items to show
+  const getMenuItems = (): NavItem[] => {
+    if (isAuthenticated) {
+      return [
+        { label: 'Home', href: '/' },
+        { label: 'About Us', href: '/AboutUs' },
+        { label: 'Contact Us', href: '/ContactUs' },
+        { label: 'Dashboard', href: '/donor/dashboard' }
+      ];
+    }
+    return menuItems;
+  };
+
+  const currentMenuItems = getMenuItems();
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
@@ -63,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
-          {menuItems.map((item) => (
+          {currentMenuItems.map((item) => (
             <li key={item.href} className="navbar-item">
               <Link 
                 href={item.href} 
@@ -74,6 +111,28 @@ const Navbar: React.FC<NavbarProps> = ({
               </Link>
             </li>
           ))}
+
+          {/* Auth buttons */}
+          {isAuthenticated ? (
+            <li className="navbar-item">
+              <button 
+                className="navbar-link logout-link"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </li>
+          ) : (
+            <li className="navbar-item">
+              <Link 
+                href="/donor/login" 
+                className={`navbar-link auth-link ${pathname === '/donor/login' ? 'active' : ''}`}
+                onClick={closeMenu}
+              >
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
     </nav>
@@ -81,3 +140,4 @@ const Navbar: React.FC<NavbarProps> = ({
 };
 
 export default Navbar;
+
