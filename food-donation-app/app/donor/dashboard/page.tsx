@@ -72,7 +72,7 @@ export default function Dashboard() {
 
           <div 
             className="action-card my-donations"
-            onClick={() => router.push("/donor/mydonations")}
+onClick={() => router.push("/donor/myDonations")}
           >
             <div className="icon">📋</div>
             <h3>My Donations</h3>

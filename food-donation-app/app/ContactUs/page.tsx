@@ -81,15 +81,15 @@ const Page = () => {
                     <div className="contact-info">
                         <div className="contact-item">
                             <h3>Email</h3>
-                            <p>contact@fooddonation.com</p>
+                            <p>harshpatidar743@gmail.com</p>
                         </div>
                         <div className="contact-item">
                             <h3>Phone</h3>
-                            <p>+1 (555) 123-4567</p>
+                            <p>+91 9752297271</p>
                         </div>
                         <div className="contact-item">
                             <h3>Address</h3>
-                            <p>123 Food Street, Help City, HC 12345</p>
+                            <p>2124, GBP Crest, Kharar, Punjab, India, 140301.</p>
                         </div>
                     </div>
                 </section>

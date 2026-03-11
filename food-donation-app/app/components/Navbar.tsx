@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import './Navbar.css';
 
 interface NavItem {
@@ -24,6 +24,7 @@ const Navbar: React.FC<NavbarProps> = ({
   ]
 }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -64,6 +65,7 @@ const Navbar: React.FC<NavbarProps> = ({
     localStorage.removeItem("donorName");
     setIsAuthenticated(false);
     closeMenu();
+    router.push('/');
   };
 
   // Determine which menu items to show

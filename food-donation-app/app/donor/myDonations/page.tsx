@@ -24,6 +24,8 @@ export default function MyDonations() {
   useEffect(() => {
     // Check if user is logged in
     const donorId = localStorage.getItem("donorId");
+    console.log("donorId:", donorId);
+    console.log("API:", API);
 
     if (!donorId) {
       router.push("/donor/login");
@@ -33,8 +35,11 @@ export default function MyDonations() {
     // Fetch donations
     const fetchDonations = async () => {
       try {
+        console.log("Fetching from:", `${API}/mydonations/${donorId}`);
         const res = await fetch(`${API}/mydonations/${donorId}`);
+        console.log("Response status:", res.status);
         const data = await res.json();
+        console.log("Response data:", data);
 
         if (res.ok) {
           setDonations(data);
@@ -42,6 +47,7 @@ export default function MyDonations() {
           setError(data.error || "Failed to load donations");
         }
       } catch (err) {
+        console.error("Error:", err);
         setError("An error occurred while loading donations");
       } finally {
         setLoading(false);

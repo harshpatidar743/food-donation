@@ -7,11 +7,12 @@ exports.registerDonor = async (req, res) => {
 
     const token = crypto.randomBytes(32).toString("hex");
 
-    const donor = new Donor({
+  const donor = new Donor({
       name,
       email,
       password,
       phone,
+      isVerified: true, // Auto-verify for now
       verificationToken: token
     });
 

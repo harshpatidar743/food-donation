@@ -29,7 +29,7 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (data.donorId) {
+      if (res.ok && data.donorId) {
         localStorage.setItem("donorId", data.donorId);
         router.push("/donor/dashboard");
       } else {

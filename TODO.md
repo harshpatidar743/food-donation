@@ -1,40 +1,31 @@
-# TODO: Food Donation Frontend Updates
+# TODO - Food Donation App Updates
 
-## Analysis Summary:
-- Backend is properly set up with auth and donation controllers
-- Frontend has basic structure but needs styling improvements and authentication flow fixes
+## Task 1: Display available donations in tabulated form with donor names
 
-## Tasks to Complete:
+### Steps:
+1. [x] Read and understand the current implementation
+2. [x] Update GetFood/page.tsx to display donations in a table format
+3. [x] Ensure donor names are properly displayed instead of "Anonymous"
+4. [x] Add CSS styling for the table
 
-### 1. Login Page Styling (`/donor/login/page.tsx`)
-- [ ] Add CSS styling matching the app theme
-- [ ] Add loading state during login
-- [ ] Add error handling display
+## Changes Made:
+1. **Converted list to table**: Replaced `<ul><li>` structure with an HTML `<table>` element
+2. **Columns**: Donor Name, Food Type, Quantity, Location
+3. **Donor name display**: Improved the conditional check to properly display the donor's name or fall back to "Anonymous"
+4. **Added CSS**: Styled the table with proper colors, borders, and hover effects
+5. **Responsive design**: Added overflow-x for mobile devices
 
-### 2. Register Page Styling (`/donor/register/page.tsx`)
-- [ ] Add CSS styling matching the app theme
-- [ ] Add loading state during registration
-- [ ] Add redirect to login after successful registration
+---
 
-### 3. Dashboard Page Styling (`/donor/dashboard/page.tsx`)
-- [ ] Add CSS styling matching the app theme
-- [ ] Add authentication check on page load
-- [ ] Add welcome message with donor name
+## Task 2: Logout should redirect to home page
 
-### 4. My Donations Page Styling (`/donor/myDonations/page.tsx`)
-- [ ] Add CSS styling matching the app theme
-- [ ] Add authentication check and redirect to login if not logged in
-- [ ] Add proper error handling
+### Steps:
+1. [x] Import useRouter from next/navigation
+2. [x] Initialize router in the component
+3. [x] Add router.push('/') to handleLogout function
 
-### 5. Main Page Updates (`/page.tsx`)
-- [ ] Add Login/Register links for donors in options section
-
-### 6. Navbar Updates (`/components/Navbar.tsx`)
-- [ ] Add Login/Register links when not authenticated
-- [ ] Add Logout link when authenticated
-- [ ] Show "My Dashboard" when authenticated
-
-### 7. Backend Verification
-- [ ] Verify all routes work correctly
-- [ ] Check for any missing error handling
+### Files Edited:
+- `food-donation-app/app/GetFood/page.tsx`
+- `food-donation-app/app/GetFood/style.css`
+- `food-donation-app/app/components/Navbar.tsx`
 

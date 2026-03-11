@@ -5,42 +5,47 @@ import './style.css';
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+interface Donor {
+  _id: string;
+  name: string;
+}
+
+interface Donation {
+  _id: string;
+  donorId: Donor;
+  foodType: string;
+  quantity: number;
+  location: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const Page = () => {
   const [location, setLocation] = useState('');
-  const [availableDonations, setAvailableDonations] = useState<{id?: number, donorName: string, foodType: string, location: string}[]>([]);
+  const [availableDonations, setAvailableDonations] = useState<Donation[]>([]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const toastId=toast.loading('fetching available food in the desired region')
+    const toastId = toast.loading('Fetching available food in the desired region')
 
-    try{
+    try {
+      console.log(`Searching for food in: ${location}`);
 
-    
+      const response = await axios.get<{ donations: Donation[] }>(`${API_BASE_URL}/donationsbylocation`, {
+        params: {
+          location: location,
+        },
+      });
 
-    
-    console.log(`Searching for food in: ${location}`);
+      console.log("response : ", response);
+      setAvailableDonations(response.data.donations || []);
 
-const response = await axios.get(`${API_BASE_URL}/donationsbylocation`, {
-  params: {
-    location: location,
-       },
-    });
-
-    console.log("response : ",response );
-
-    setAvailableDonations(response.data.donations);
-
-}
-catch(error){
-    toast.error('error in fetching');
-}
-finally{
-  toast.dismiss(toastId);
-}
-
-  
+    } catch (error: any) {
+      console.error('Error fetching donations:', error);
+      toast.error(error.response?.data?.error || 'Error in fetching donations');
+    } finally {
+      toast.dismiss(toastId);
+    }
   };
 
   return (
@@ -70,13 +75,34 @@ finally{
 
         <section id="available-food" className="donation-list-section">
           <h2>Available Donations</h2>
-          <ul id="food-list">
-            {availableDonations.map((donation) => (
-              <li key={donation.id}>
-                <strong>{donation.donorId?.name}</strong> is donating {donation.quantity} units of {donation.foodType} in {donation.location}
-              </li>
-            ))}
-          </ul>
+          {availableDonations.length === 0 ? (
+            <p className="empty-message">No donations found in this location. Try searching for a different area.</p>
+          ) : (
+            <table className="donations-table">
+              <thead>
+                <tr>
+                  <th>Donor Name</th>
+                  <th>Food Type</th>
+                  <th>Quantity</th>
+                  <th>Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availableDonations.map((donation) => (
+                  <tr key={donation._id}>
+                    <td>
+                      {donation.donorId && typeof donation.donorId === 'object' && donation.donorId.name 
+                        ? donation.donorId.name 
+                        : 'Anonymous'}
+                    </td>
+                    <td>{donation.foodType}</td>
+                    <td>{donation.quantity} units</td>
+                    <td>📍 {donation.location}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       </main>
 

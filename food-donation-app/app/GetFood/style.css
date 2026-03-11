@@ -122,6 +122,92 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
+/* Donation Card Styling */
+.donation-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.donor-name {
+    font-size: 1.1em;
+    color: #4caf50;
+}
+
+.donation-details {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quantity {
+    font-weight: bold;
+    color: #ffcc00;
+    background-color: rgba(255, 204, 0, 0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.food-type {
+    color: #ffffff;
+}
+
+.donation-location {
+    font-size: 0.95em;
+    color: #cccccc;
+    margin-top: 4px;
+}
+
+/* Empty Message */
+.empty-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: #aaaaaa;
+    font-size: 1.1em;
+    background-color: #262626;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+/* Donations Table */
+.donations-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.donations-table thead {
+    background-color: #2e7d32;
+}
+
+.donations-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #ffffff;
+    border-bottom: 2px solid #4caf50;
+}
+
+.donations-table tbody tr {
+    background-color: #333333;
+    transition: background 0.3s ease;
+}
+
+.donations-table tbody tr:hover {
+    background-color: #444444;
+}
+
+.donations-table td {
+    padding: 15px;
+    border-bottom: 1px solid #555555;
+    color: #ffffff;
+}
+
+.donations-table td:first-child {
+    color: #4caf50;
+    font-weight: 500;
+}
+
 /* Footer */
 footer {
     background-color: #000000; /* Black footer background */
@@ -188,6 +274,12 @@ footer p {
 
     .donation-list-section h2 {
         font-size: 1.4em;
+    }
+
+    /* Table responsive */
+    .donations-table {
+        display: block;
+        overflow-x: auto;
     }
 }
 
