@@ -3,15 +3,16 @@ const crypto = require("crypto");
 
 exports.registerDonor = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+const { name, email, password, phone, userType } = req.body;
 
     const token = crypto.randomBytes(32).toString("hex");
 
-  const donor = new Donor({
+    const donor = new Donor({
       name,
       email,
       password,
       phone,
+      userType,
       isVerified: true, // Auto-verify for now
       verificationToken: token
     });

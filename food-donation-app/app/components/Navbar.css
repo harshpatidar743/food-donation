@@ -1,4 +1,6 @@
-/* Navbar Styles */
+
+
+
 .navbar {
   position: fixed;
   top: 0;
@@ -285,3 +287,4 @@
     font-size: 1rem;
   }
 }
+

@@ -1,31 +1,9 @@
-# TODO - Food Donation App Updates
+# User Type Registration Implementation
 
-## Task 1: Display available donations in tabulated form with donor names
-
-### Steps:
-1. [x] Read and understand the current implementation
-2. [x] Update GetFood/page.tsx to display donations in a table format
-3. [x] Ensure donor names are properly displayed instead of "Anonymous"
-4. [x] Add CSS styling for the table
-
-## Changes Made:
-1. **Converted list to table**: Replaced `<ul><li>` structure with an HTML `<table>` element
-2. **Columns**: Donor Name, Food Type, Quantity, Location
-3. **Donor name display**: Improved the conditional check to properly display the donor's name or fall back to "Anonymous"
-4. **Added CSS**: Styled the table with proper colors, borders, and hover effects
-5. **Responsive design**: Added overflow-x for mobile devices
-
----
-
-## Task 2: Logout should redirect to home page
-
-### Steps:
-1. [x] Import useRouter from next/navigation
-2. [x] Initialize router in the component
-3. [x] Add router.push('/') to handleLogout function
-
-### Files Edited:
-- `food-donation-app/app/GetFood/page.tsx`
-- `food-donation-app/app/GetFood/style.css`
-- `food-donation-app/app/components/Navbar.tsx`
-
+## Steps:
+- [x] 1. Update Donor model to add userType field
+- [x] 2. Update authController registerDonor to handle userType  
+- [x] 3. Update frontend register page to include userType selector and submission
+- [x] 4. Restart backend server
+- [ ] 5. Test registration with different user types
+- [ ] 6. Mark complete

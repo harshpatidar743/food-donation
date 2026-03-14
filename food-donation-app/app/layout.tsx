@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
-import "./globals.css";
 import "./styles.css";
 import { Toaster } from 'react-hot-toast';
 import Navbar from "./components/Navbar";

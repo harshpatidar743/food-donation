@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const donorSchema = new mongoose.Schema({
-
   name: {
     type: String,
     required: true
@@ -23,6 +22,12 @@ const donorSchema = new mongoose.Schema({
     required: true
   },
 
+  userType: {
+    type: String,
+    enum: ['individual', 'organization', 'business'],
+    required: true
+  },
+
   isVerified: {
     type: Boolean,
     default: false
@@ -35,3 +40,4 @@ const donorSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model("Donor", donorSchema);
+

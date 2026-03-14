@@ -1,4 +1,8 @@
-/* Hero Section for Subpages */
+
+
+/* About Us CSS */
+
+
 .hero-small {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;    height: 40vh;
     color: #ffffff;
@@ -27,7 +31,7 @@
     animation: fadeIn 1.5s ease;
 }
 
-/* Content Section */
+
 .content-section {
     background-color: #1a1a1a;
     padding: 30px;
@@ -50,7 +54,6 @@
     color: #eeeeee;
 }
 
-/* Feature List */
 .feature-list {
     list-style-type: none;
     padding: 0;
@@ -73,7 +76,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-/* Footer */
 footer {
     background-color: #000000;
     color: #ffcc00;
@@ -87,7 +89,6 @@ footer p {
     color: #ffff99;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -107,3 +108,4 @@ footer p {
         transform: translateY(0);
     }
 }
+
