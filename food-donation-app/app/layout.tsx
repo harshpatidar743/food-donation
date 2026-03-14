@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${robotoMono.variable}`}>
         <Navbar />
-        <main style={{ paddingTop: '80px' }}>
+        <main>
           {children}
         </main>
         <Toaster position="top-center" />
