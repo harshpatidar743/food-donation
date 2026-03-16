@@ -42,9 +42,6 @@ const Page = () => {
                     </p>
                 </section>
             </main>
-            <footer>
-                <p>&copy; 2024 Food Donation Platform. Thank you for your support!</p>
-            </footer>
         </div>
     );
 };

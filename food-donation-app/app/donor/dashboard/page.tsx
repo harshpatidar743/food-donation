@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./dashboard.css";
+import { clearStoredAuthUser, getStoredAuthUser } from "../../lib/auth";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -11,25 +12,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Check if user is logged in
-    const donorId = localStorage.getItem("donorId");
+    const authUser = getStoredAuthUser();
     
-    if (!donorId) {
+    if (!authUser?.donorId) {
       router.push("/donor/login");
       return;
     }
 
-    // Get donor name from localStorage (could also fetch from API)
-    const storedName = localStorage.getItem("donorName");
-    if (storedName) {
-      setDonorName(storedName);
+    if (authUser.name) {
+      setDonorName(authUser.name);
     }
 
     setLoading(false);
   }, [router]);
 
   const logout = () => {
-    localStorage.removeItem("donorId");
-    localStorage.removeItem("donorName");
+    clearStoredAuthUser();
     router.push("/donor/login");
   };
 

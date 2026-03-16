@@ -4,14 +4,14 @@
 
 
 .hero-small {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;    height: 40vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1600&h=900&fit=crop') no-repeat center center/cover;    height: 40vh;
     color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
-    padding: 20px;
+    padding: 0px;
     margin: 0;
     width: 100%;
 }
@@ -74,19 +74,6 @@
 .feature-list li:hover {
     background-color: #444444;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
-footer {
-    background-color: #000000;
-    color: #ffcc00;
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 50px;
-}
-
-footer p {
-    margin: 0;
-    color: #ffff99;
 }
 
 @keyframes fadeIn {

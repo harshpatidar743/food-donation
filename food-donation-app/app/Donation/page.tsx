@@ -106,7 +106,7 @@ const Page = () => {
         <div>
             <header>
                 <div className="hero-small">
-                    <h1>Donate Your Excess Food</h1>
+                    <h1><span className="dual-color-text">Donate</span> Your Excess Food</h1>
                     <p>Make a difference by donating your surplus food to those in need.</p>
                 </div>
             </header>
@@ -156,9 +156,6 @@ const Page = () => {
                     </ul>
                 </section>
             </main>
-            <footer>
-                <p>&copy; 2024 Food Donation Platform. Thank you for helping!</p>
-            </footer>
         </div>
     );
 };

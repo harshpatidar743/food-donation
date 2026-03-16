@@ -18,7 +18,7 @@ export default function Home() {
     <div className="container">
       <header>
         <div className="hero">
-          <h1>Join the Fight Against Food Waste</h1>
+          <h1>Join the Fight Against <span className="dual-color-text">Food Waste</span></h1>
           <p>Together we can make a difference by sharing surplus food with those in need.</p>
           <a href="#options" className="hero-button">Get Started</a>
         </div>
@@ -26,16 +26,16 @@ export default function Home() {
       
       <section id="options" className="options">
         <div className="option">
-          <h2>Are you a donor?</h2>
-          <p>If you have excess food and want to donate, click below.</p>
+          <h2><span className="dual-color-text">Donate</span> Surplus Food</h2>
+          <p>Share leftover food from anywhere with those who need it.</p>
           <Link href={isAuthenticated ? "/Donation" : "/donor/login"} className="button">
             <i className="fas fa-donate"></i> Donate Food
           </Link>
         </div>
         
         <div className="option">
-          <h2>Looking for food?</h2>
-          <p>If you're in need of food, click below to find available donations.</p>
+          <h2><span className="dual-color-text">Find</span> Available Food</h2>
+          <p>Discover available food donations from generous donors near you.</p>
           <Link href="/GetFood" className="button">
             <i className="fas fa-hamburger"></i> Get Food
           </Link>
@@ -59,10 +59,6 @@ export default function Home() {
           <p>Connect with donors and recipients in your local community.</p>
         </div>
       </section>
-
-      <footer>
-        <p>&copy; 2024 Food Donation Platform. Making a difference, one meal at a time.</p>
-      </footer>
     </div>
   );
 }

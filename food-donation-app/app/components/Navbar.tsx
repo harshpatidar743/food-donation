@@ -4,6 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import './Navbar.css';
+import {
+  AUTH_STORAGE_EVENT,
+  clearStoredAuthUser,
+  getStoredAuthUser,
+  isAdminUser
+} from "../lib/auth";
 
 interface NavItem {
   label: string;
@@ -28,6 +34,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,15 +48,21 @@ const Navbar: React.FC<NavbarProps> = ({
   // Check authentication status
   useEffect(() => {
     const checkAuth = () => {
-      const donorId = localStorage.getItem("donorId");
-      setIsAuthenticated(!!donorId);
+      const authUser = getStoredAuthUser();
+      setIsAuthenticated(!!authUser);
+      setIsAdmin(isAdminUser(authUser));
     };
 
     checkAuth();
     
     // Check auth on storage changes
     window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    window.addEventListener(AUTH_STORAGE_EVENT, checkAuth);
+
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener(AUTH_STORAGE_EVENT, checkAuth);
+    };
   }, [pathname]);
 
   const toggleMenu = () => {
@@ -61,9 +74,9 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("donorId");
-    localStorage.removeItem("donorName");
+    clearStoredAuthUser();
     setIsAuthenticated(false);
+    setIsAdmin(false);
     closeMenu();
     router.push('/');
   };
@@ -71,12 +84,18 @@ const Navbar: React.FC<NavbarProps> = ({
   // Determine which menu items to show
   const getMenuItems = (): NavItem[] => {
     if (isAuthenticated) {
-      return [
+      const authenticatedMenuItems = [
         { label: 'Home', href: '/' },
         { label: 'About Us', href: '/AboutUs' },
         { label: 'Contact Us', href: '/ContactUs' },
         { label: 'Dashboard', href: '/donor/dashboard' }
       ];
+
+      if (isAdmin) {
+        authenticatedMenuItems.push({ label: 'Admin Messages', href: '/dashboard/messages' });
+      }
+
+      return authenticatedMenuItems;
     }
     return menuItems;
   };

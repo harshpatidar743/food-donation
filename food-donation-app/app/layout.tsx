@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./styles.css";
+// import "./components.css";
 import { Toaster } from 'react-hot-toast';
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 
 const inter = Inter({
@@ -29,9 +31,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${robotoMono.variable}`}>
         <Navbar />
-        <main>
+        <div className="app-shell">
           {children}
-        </main>
+        </div>
+        <Footer />
         <Toaster position="top-center" />
       </body>
     </html>

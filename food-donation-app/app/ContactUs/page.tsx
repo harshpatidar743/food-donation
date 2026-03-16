@@ -1,38 +1,65 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import './style.css';
-import toast from 'react-hot-toast';
+import { FormEvent, useState } from "react";
+import toast from "react-hot-toast";
+import "./style.css";
+
+type ContactFormResponse = {
+    success: boolean;
+    error?: string;
+};
 
 const Page = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        message: ''
-    });
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleInputChange = (e: any) => {
-        const { id, value } = e.target;
-        setFormData({
-            ...formData,
-            [id]: value,
-        });
-    };
-
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const toastId = toast.loading('Sending message...');
-        
-        // Simulate sending message
-        setTimeout(() => {
-            toast.success('Message sent successfully!');
-            toast.dismiss(toastId);
-            setFormData({
-                name: '',
-                email: '',
-                message: ''
+
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+        const trimmedMessage = message.trim();
+
+        if (!trimmedName || !trimmedEmail || !trimmedMessage) {
+            toast.error("Name, email, and message are required.");
+            return;
+        }
+
+        const toastId = toast.loading("Sending message...");
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch("/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: trimmedName,
+                    email: trimmedEmail,
+                    message: trimmedMessage,
+                }),
             });
-        }, 1000);
+
+            const data: ContactFormResponse = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Failed to send message.");
+            }
+
+            toast.success("Message Sent Successfully", { id: toastId });
+            setName("");
+            setEmail("");
+            setMessage("");
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Failed to send message.";
+            toast.error(errorMessage, { id: toastId });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -51,28 +78,33 @@ const Page = () => {
                             type="text" 
                             id="name" 
                             placeholder="Your Name" 
-                            value={formData.name}
-                            onChange={handleInputChange} 
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            disabled={isSubmitting}
                             required 
                         />
                         <input 
                             type="email" 
                             id="email" 
                             placeholder="Your Email" 
-                            value={formData.email}
-                            onChange={handleInputChange} 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={isSubmitting}
                             required 
                         />
                         <textarea 
                             id="message" 
                             placeholder="Your Message" 
-                            value={formData.message}
-                            onChange={handleInputChange} 
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            disabled={isSubmitting}
                             required 
                             rows={5}
                         ></textarea>
 
-                        <button type="submit" className="button">Send Message</button>
+                        <button type="submit" className="button" disabled={isSubmitting}>
+                            {isSubmitting ? "Sending..." : "Send Message"}
+                        </button>
                     </form>
                 </section>
 
@@ -81,7 +113,7 @@ const Page = () => {
                     <div className="contact-info">
                         <div className="contact-item">
                             <h3>Email</h3>
-                            <p>harshpatidar743@gmail.com</p>
+                            <p>harshcu2@gmail.com</p>
                         </div>
                         <div className="contact-item">
                             <h3>Phone</h3>
@@ -94,9 +126,6 @@ const Page = () => {
                     </div>
                 </section>
             </main>
-            <footer>
-                <p>&copy; 2024 Food Donation Platform. Thank you for reaching out!</p>
-            </footer>
         </div>
     );
 };

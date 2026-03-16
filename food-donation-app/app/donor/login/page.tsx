@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import "./login.css";
+import styles from "./login.module.css";
+import { persistAuthUser, type UserRole } from "../../lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+type LoginResponse = {
+  donorId?: string;
+  name?: string;
+  role?: UserRole;
+  error?: string;
+};
 
 export default function Login() {
   const router = useRouter();
@@ -27,11 +35,18 @@ export default function Login() {
         body: JSON.stringify({ email, password })
       });
 
-      const data = await res.json();
+      const data: LoginResponse = await res.json();
 
       if (res.ok && data.donorId) {
-        localStorage.setItem("donorId", data.donorId);
-        router.push("/donor/dashboard");
+        const role = data.role || "individual";
+
+        persistAuthUser({
+          donorId: data.donorId,
+          name: data.name,
+          role
+        });
+
+        router.push(role === "admin" ? "/dashboard/messages" : "/donor/dashboard");
       } else {
         setError(data.error || "Login failed. Please try again.");
       }
@@ -43,17 +58,17 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
+    <div className={styles.loginPage}>
+      <div className={styles.loginContainer}>
+        <div className={styles.loginHeader}>
           <h1>Donor Login</h1>
           <p>Welcome back! Please login to continue.</p>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className={styles.errorMessage}>{error}</div>}
 
-        <form className="login-form" onSubmit={handleLogin}>
-          <div className="form-group">
+        <form className={styles.loginForm} onSubmit={handleLogin}>
+          <div className={styles.formGroup}>
             <label htmlFor="email">Email Address</label>
             <input
               id="email"
@@ -65,7 +80,7 @@ export default function Login() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -77,12 +92,12 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="login-button" disabled={loading}>
+          <button type="submit" className={styles.loginButton} disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <div className="login-footer">
+        <div className={styles.loginFooter}>
           <p>
             Don't have an account?{" "}
             <Link href="/donor/register">Register here</Link>

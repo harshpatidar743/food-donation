@@ -3,13 +3,16 @@ const mongoose = require("mongoose");
 const donorSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
 
   password: {
@@ -19,13 +22,18 @@ const donorSchema = new mongoose.Schema({
 
   phone: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
   userType: {
+    type: String
+  },
+
+  role: {
     type: String,
-    enum: ['individual', 'organization', 'business'],
-    required: true
+    enum: ["admin", "individual", "organization", "business/restaurant"],
+    default: "individual"
   },
 
   isVerified: {
@@ -40,4 +48,3 @@ const donorSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model("Donor", donorSchema);
-

@@ -52,7 +52,7 @@ const Page = () => {
     <div>
       <header>
         <div className="hero-small">
-          <h1>Find Food Donations Near You</h1>
+          <h1>Find Food <span className="dual-color-text">Donations</span> Near You</h1>
           <p>Search for available food donations in your area and help reduce food waste.</p>
         </div>
       </header>
@@ -105,10 +105,6 @@ const Page = () => {
           )}
         </section>
       </main>
-
-      <footer>
-        <p>&copy; 2024 Food Donation Platform. Helping people in need, one meal at a time.</p>
-      </footer>
     </div>
   );
 };

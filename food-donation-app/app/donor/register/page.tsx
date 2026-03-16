@@ -8,6 +8,12 @@ import "./register.css";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 type UserType = "individual" | "organization" | "business";
 
+const userTypeToRole = {
+  individual: "individual",
+  organization: "organization",
+  business: "business/restaurant"
+} as const;
+
 const userTypeCards = [
   {
     type: "individual" as UserType,
@@ -21,21 +27,21 @@ const userTypeCards = [
   },
   {
     type: "business" as UserType,
-    label: "Restaurant / Business",
-    description: "Businesses with surplus"
+    label: "Business / Restaurant",
+    description: "Businesses and restaurants with surplus food"
   }
 ];
 
 const userTypeTitles: Record<UserType, string> = {
   individual: "Register As Individual",
   organization: "Register As Organization",
-  business: "Register As Restaurant"
+  business: "Register As Business / Restaurant"
 };
 
 const userTypeButtonLabels: Record<UserType, string> = {
   individual: "Register as Individual",
   organization: "Register as Organization",
-  business: "Register as Restaurant"
+  business: "Register as Business / Restaurant"
 };
 
 const createInitialForm = (userType: UserType) => ({
@@ -49,7 +55,7 @@ const createInitialForm = (userType: UserType) => ({
   organizationName: "",
   registrationNumber: "",
   organizationAddress: "",
-  ngoCertificateName: "",
+  organizationCertificateName: "",
   businessName: "",
   businessType: "",
   ownerName: "",
@@ -82,7 +88,7 @@ export default function Register() {
 
     setForm((currentForm) => ({
       ...currentForm,
-      ngoCertificateName: file?.name || ""
+      organizationCertificateName: file?.name || ""
     }));
   };
 
@@ -95,13 +101,14 @@ export default function Register() {
     try {
       const payload = {
         ...form,
-        userType,
+        accountType: userType,
         name:
           userType === "organization"
             ? form.organizationName
             : userType === "business"
               ? form.businessName
-              : form.name
+              : form.name,
+        role: userTypeToRole[userType]
       };
 
       const res = await fetch(`${API}/register`, {
@@ -148,7 +155,6 @@ export default function Register() {
                 aria-pressed={userType === card.type}
               >
                 <span className="card-kicker">{card.label}</span>
-                {/* <strong>{card.label}</strong> */}
                 <span>{card.description}</span>
               </button>
             ))}
@@ -328,17 +334,17 @@ export default function Register() {
                     </div>
 
                     <div className="form-group full-width">
-                      <label htmlFor="ngoCertificate">Certificate Upload</label>
+                      <label htmlFor="organizationCertificate">Certificate Upload</label>
                       <input
-                        id="ngoCertificate"
-                        name="ngoCertificate"
+                        id="organizationCertificate"
+                        name="organizationCertificate"
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                         onChange={handleFileChange}
                         required
                       />
-                      {form.ngoCertificateName && (
-                        <p className="form-hint">Selected file: {form.ngoCertificateName}</p>
+                      {form.organizationCertificateName && (
+                        <p className="form-hint">Selected file: {form.organizationCertificateName}</p>
                       )}
                     </div>
                   </>
