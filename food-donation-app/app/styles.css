@@ -292,11 +292,14 @@ body {
 
     .info-section {
         flex-direction: column;
-        padding: 30px 20px;
+        gap: 24px;
+        padding: 40px 20px;
     }
 
     .info-card {
         width: 100%;
+        padding: 35px 25px;
+        margin: 0;
     }
 }
 

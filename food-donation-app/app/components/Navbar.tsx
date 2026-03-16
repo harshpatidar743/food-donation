@@ -73,6 +73,17 @@ const Navbar: React.FC<NavbarProps> = ({
     setIsMenuOpen(false);
   };
 
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+    return () => {
+      document.body.classList.remove('menu-open');
+    };
+  }, [isMenuOpen]);
+
   const handleLogout = () => {
     clearStoredAuthUser();
     setIsAuthenticated(false);
@@ -155,6 +166,12 @@ const Navbar: React.FC<NavbarProps> = ({
             </li>
           )}
         </ul>
+
+          {/* Mobile overlay */}
+          <div 
+            className={`mobile-overlay ${isMenuOpen ? 'active' : ''}`} 
+            onClick={closeMenu}
+          ></div>
       </div>
     </nav>
   );
