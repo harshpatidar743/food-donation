@@ -1,4 +1,4 @@
-require("dotenv").config();
+const env = require("./config/env");
 
 const express = require("express");
 const cors = require("cors");
@@ -25,9 +25,8 @@ app.use("/", donationRoutes);
 const errorMiddleware = require("./middleware/errorMiddleware");
 app.use(errorMiddleware);
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.port;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-

@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { jwtSecret } = require('../config/env');
 
 // Protect routes - JWT middleware
 const protect = (req, res, next) => {
@@ -14,7 +15,7 @@ const protect = (req, res, next) => {
         return next(error);
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, jwtSecret);
 
       req.user = { id: decoded.id }; // Assumes token payload has 'id' field
 

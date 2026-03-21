@@ -2,6 +2,7 @@ const Donor = require('../models/donor');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { jwtSecret } = require('../config/env');
 
 const ROLE_MAP = {
   admin: 'admin',
@@ -21,7 +22,7 @@ const getStoredRole = (donor) => normalizeRole(donor.role) || normalizeRole(dono
 const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
-const generateJWT = (donorId) => jwt.sign({ id: donorId }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const generateJWT = (donorId) => jwt.sign({ id: donorId }, jwtSecret, { expiresIn: '30d' });
 
 exports.registerUser = async (data) => {
   const { name, email, password, phone, userType, accountType, role } = data;
