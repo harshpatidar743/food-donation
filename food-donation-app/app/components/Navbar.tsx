@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import {
   clearStoredAuthUser,
   getStoredAuthUser,
   isAdminUser
-} from "../lib/auth";
+} from '../lib/auth';
 
 interface NavItem {
   label: string;
@@ -22,7 +22,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
-  siteTitle = "Food Donation", 
+  siteTitle = 'Food Donation', 
   menuItems = [
     { label: 'Home', href: '/' },
     { label: 'About Us', href: '/AboutUs' },
@@ -45,7 +45,6 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check authentication status
   useEffect(() => {
     const checkAuth = () => {
       const authUser = getStoredAuthUser();
@@ -55,7 +54,6 @@ const Navbar: React.FC<NavbarProps> = ({
 
     checkAuth();
     
-    // Check auth on storage changes
     window.addEventListener('storage', checkAuth);
     window.addEventListener(AUTH_STORAGE_EVENT, checkAuth);
 
@@ -74,13 +72,41 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMenuOpen) {
+        closeMenu();
+      }
+    };
+
     if (isMenuOpen) {
-      document.body.classList.add('menu-open');
-    } else {
-      document.body.classList.remove('menu-open');
+      document.addEventListener('keydown', handleEscape);
     }
+
     return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!isMenuOpen) {
       document.body.classList.remove('menu-open');
+      document.documentElement.classList.remove('menu-open');
+      document.body.style.top = '';
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    document.body.style.top = `-${scrollY}px`;
+    document.body.classList.add('menu-open');
+    document.documentElement.classList.add('menu-open');
+
+    return () => {
+      const lockedScrollY = Math.abs(parseInt(document.body.style.top || '0', 10));
+
+      document.body.classList.remove('menu-open');
+      document.documentElement.classList.remove('menu-open');
+      document.body.style.top = '';
+      window.scrollTo(0, lockedScrollY || scrollY);
     };
   }, [isMenuOpen]);
 
@@ -92,7 +118,6 @@ const Navbar: React.FC<NavbarProps> = ({
     router.push('/');
   };
 
-  // Determine which menu items to show
   const getMenuItems = (): NavItem[] => {
     if (isAuthenticated) {
       const authenticatedMenuItems = [
@@ -116,62 +141,64 @@ const Navbar: React.FC<NavbarProps> = ({
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-container">
-        <Link href="/" className="navbar-logo" onClick={closeMenu}>
-          <span className="logo-icon">🍽️</span>
-          <span className="logo-text">{siteTitle}</span>
-        </Link>
+        <div className="logo-section">
+          <Link href="/" className="navbar-logo" onClick={closeMenu}>
+            <span className="logo-icon">🍽️</span>
+            <span className="logo-text">{siteTitle}</span>
+          </Link>
+        </div>
 
-        <button 
-          className={`hamburger ${isMenuOpen ? 'active' : ''}`} 
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+        <div className="nav-section">
+          <button 
+            className={`hamburger ${isMenuOpen ? 'active' : ''}`} 
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
 
-        <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
-          {currentMenuItems.map((item) => (
-            <li key={item.href} className="navbar-item">
-              <Link 
-                href={item.href} 
-                className={`navbar-link ${pathname === item.href ? 'active' : ''}`}
-                onClick={closeMenu}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
+            {currentMenuItems.map((item) => (
+              <li key={item.href} className="navbar-item">
+                <Link 
+                  href={item.href} 
+                  className={`navbar-link ${pathname === item.href ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
 
-          {/* Auth buttons */}
-          {isAuthenticated ? (
-            <li className="navbar-item">
-              <button 
-                className="navbar-link logout-link"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </li>
-          ) : (
-            <li className="navbar-item">
-              <Link 
-                href="/donor/login" 
-                className={`navbar-link auth-link ${pathname === '/donor/login' ? 'active' : ''}`}
-                onClick={closeMenu}
-              >
-                Login
-              </Link>
-            </li>
-          )}
-        </ul>
+            {isAuthenticated ? (
+              <li className="navbar-item">
+                <button 
+                  className="navbar-link logout-link"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </li>
+            ) : (
+              <li className="navbar-item">
+                <Link 
+                  href="/donor/login" 
+                  className={`navbar-link auth-link ${pathname === '/donor/login' ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Login
+                </Link>
+              </li>
+            )}
+          </ul>
 
-          {/* Mobile overlay */}
           <div 
             className={`mobile-overlay ${isMenuOpen ? 'active' : ''}`} 
             onClick={closeMenu}
-          ></div>
+          />
+        </div>
       </div>
     </nav>
   );

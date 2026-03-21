@@ -9,10 +9,18 @@ const {
   deleteDonation
 } = require("../controllers/donationController");
 
-router.post("/donate", createDonation);
+const { protect } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validators");
+const { createDonationSchema } = require("../validators/donationValidator");
+
+// Public routes
 router.get("/donations", getAllDonations);
 router.get("/donationsbylocation", getDonationsByLocation);
-router.get("/mydonations/:donorId", getMyDonations);
-router.delete("/donation/:id", deleteDonation);
+
+// Protected routes
+router.post("/donate", protect, validate(createDonationSchema), createDonation);
+router.get("/mydonations/:donorId", protect, getMyDonations);
+router.delete("/donation/:id", protect, deleteDonation);
 
 module.exports = router;
+

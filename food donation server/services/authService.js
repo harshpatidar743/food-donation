@@ -1,0 +1,121 @@
+const Donor = require('../models/donor');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+const ROLE_MAP = {
+  admin: 'admin',
+  individual: 'individual',
+  organization: 'organization',
+  ngo: 'organization',
+  business: 'business/restaurant',
+  restaurant: 'business/restaurant',
+  'business/restaurant': 'business/restaurant'
+};
+
+const normalizeText = (value) => typeof value === 'string' ? value.trim() : '';
+const normalizeEmail = (value) => normalizeText(value).toLowerCase();
+const normalizeRole = (value) => ROLE_MAP[normalizeText(value).toLowerCase()];
+const getRegistrationRole = (value) => normalizeRole(value) || 'individual';
+const getStoredRole = (donor) => normalizeRole(donor.role) || normalizeRole(donor.userType) || 'individual';
+
+const generateToken = () => crypto.randomBytes(32).toString('hex');
+const generateJWT = (donorId) => jwt.sign({ id: donorId }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+exports.registerUser = async (data) => {
+  const { name, email, password, phone, userType, accountType, role } = data;
+  const normalizedName = normalizeText(name);
+  const normalizedEmail = normalizeEmail(email);
+  const normalizedPhone = normalizeText(phone);
+
+  if (!normalizedName || !normalizedEmail || !password || !normalizedPhone) {
+    const error = new Error('Name, email, password, and phone are required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const existingDonor = await Donor.findOne({ email: normalizedEmail });
+  if (existingDonor) {
+    const error = new Error('Email is already registered');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const salt = await bcrypt.genSalt(12);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const token = generateToken();
+  const assignedRole = getRegistrationRole(accountType || role || userType);
+
+  const donor = new Donor({
+    name: normalizedName,
+    email: normalizedEmail,
+    password: hashedPassword,
+    phone: normalizedPhone,
+    role: assignedRole,
+    isVerified: true,
+    verificationToken: token
+  });
+
+  await donor.save();
+
+  const jwtToken = generateJWT(donor._id);
+
+  return {
+    message: 'Donor registered successfully',
+    verificationToken: token,
+    token: jwtToken,
+    donor: {
+      donorId: donor._id,
+      name: donor.name,
+      email: donor.email,
+      role: donor.role
+    }
+  };
+};
+
+exports.loginUser = async (data) => {
+  const { email, password } = data;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail || !password) {
+    const error = new Error('Email and password are required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const donor = await Donor.findOne({ email: normalizedEmail });
+  if (!donor) {
+    const error = new Error('Donor not found');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const isMatch = await bcrypt.compare(password, donor.password);
+  if (!isMatch) {
+    const error = new Error('Invalid password');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!donor.isVerified) {
+    const error = new Error('Email not verified yet');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const role = getStoredRole(donor);
+  if (donor.role !== role) {
+    donor.role = role;
+    await donor.save();
+  }
+
+  const token = generateJWT(donor._id);
+
+  return {
+    message: 'Login successful',
+    donorId: donor._id,
+    name: donor.name,
+    role,
+    token
+  };
+};
