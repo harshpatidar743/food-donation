@@ -4,11 +4,13 @@ export type AuthUser = {
   donorId: string;
   name?: string;
   role: UserRole;
+  token?: string;
 };
 
 const DONOR_ID_KEY = "donorId";
 const DONOR_NAME_KEY = "donorName";
 const DONOR_ROLE_KEY = "donorRole";
+const DONOR_TOKEN_KEY = "donorToken";
 const AUTH_CHANGE_EVENT = "auth-change";
 
 const isBrowser = () => typeof window !== "undefined";
@@ -42,8 +44,9 @@ export const getStoredAuthUser = (): AuthUser | null => {
 
   const name = localStorage.getItem(DONOR_NAME_KEY) || undefined;
   const role = normalizeUserRole(localStorage.getItem(DONOR_ROLE_KEY));
+  const token = localStorage.getItem(DONOR_TOKEN_KEY) || undefined;
 
-  return { donorId, name, role };
+  return { donorId, name, role, token };
 };
 
 export const persistAuthUser = (user: AuthUser) => {
@@ -60,6 +63,12 @@ export const persistAuthUser = (user: AuthUser) => {
     localStorage.removeItem(DONOR_NAME_KEY);
   }
 
+  if (user.token) {
+    localStorage.setItem(DONOR_TOKEN_KEY, user.token);
+  } else {
+    localStorage.removeItem(DONOR_TOKEN_KEY);
+  }
+
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 };
 
@@ -71,9 +80,11 @@ export const clearStoredAuthUser = () => {
   localStorage.removeItem(DONOR_ID_KEY);
   localStorage.removeItem(DONOR_NAME_KEY);
   localStorage.removeItem(DONOR_ROLE_KEY);
+  localStorage.removeItem(DONOR_TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 };
 
 export const isAdminUser = (user: AuthUser | null) => user?.role === "admin";
+export const getStoredAuthToken = () => getStoredAuthUser()?.token || null;
 
 export const AUTH_STORAGE_EVENT = AUTH_CHANGE_EVENT;

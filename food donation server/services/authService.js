@@ -18,6 +18,7 @@ const normalizeEmail = (value) => normalizeText(value).toLowerCase();
 const normalizeRole = (value) => ROLE_MAP[normalizeText(value).toLowerCase()];
 const getRegistrationRole = (value) => normalizeRole(value) || 'individual';
 const getStoredRole = (donor) => normalizeRole(donor.role) || normalizeRole(donor.userType) || 'individual';
+const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
 const generateJWT = (donorId) => jwt.sign({ id: donorId }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -90,7 +91,12 @@ exports.loginUser = async (data) => {
     throw error;
   }
 
-  const isMatch = await bcrypt.compare(password, donor.password);
+  const storedPassword = donor.password;
+  const isLegacyPassword = !isBcryptHash(storedPassword);
+  const isMatch = isLegacyPassword
+    ? password === storedPassword
+    : await bcrypt.compare(password, storedPassword);
+
   if (!isMatch) {
     const error = new Error('Invalid password');
     error.statusCode = 400;
@@ -104,8 +110,21 @@ exports.loginUser = async (data) => {
   }
 
   const role = getStoredRole(donor);
+  let shouldSave = false;
+
   if (donor.role !== role) {
     donor.role = role;
+    shouldSave = true;
+  }
+
+  // Migrate older donor records that were stored with plain-text passwords.
+  if (isLegacyPassword) {
+    const salt = await bcrypt.genSalt(12);
+    donor.password = await bcrypt.hash(password, salt);
+    shouldSave = true;
+  }
+
+  if (shouldSave) {
     await donor.save();
   }
 

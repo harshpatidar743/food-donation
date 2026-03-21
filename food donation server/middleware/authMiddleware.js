@@ -9,22 +9,25 @@ const protect = (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
 
       if (!token) {
-        res.status(401);
-        throw new Error('No token provided');
+        const error = new Error('No token provided');
+        error.statusCode = 401;
+        return next(error);
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       req.user = { id: decoded.id }; // Assumes token payload has 'id' field
 
-      next();
+      return next();
     } catch (error) {
-      res.status(401);
-      throw new Error('Not authorized, token failed');
+      const authError = new Error('Not authorized, token failed');
+      authError.statusCode = 401;
+      return next(authError);
     }
   } else {
-    res.status(401);
-    throw new Error('Not authorized, no token');
+    const error = new Error('Not authorized, no token');
+    error.statusCode = 401;
+    return next(error);
   }
 };
 

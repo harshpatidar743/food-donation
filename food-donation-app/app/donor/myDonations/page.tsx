@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "./myDonations.css";
+import { getStoredAuthToken, getStoredAuthUser } from "../../lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -22,21 +23,25 @@ export default function MyDonations() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Check if user is logged in
-    const donorId = localStorage.getItem("donorId");
+    const authUser = getStoredAuthUser();
+    const donorId = authUser?.donorId;
+    const token = getStoredAuthToken();
     console.log("donorId:", donorId);
     console.log("API:", API);
 
-    if (!donorId) {
+    if (!donorId || !token) {
       router.push("/donor/login");
       return;
     }
 
-    // Fetch donations
     const fetchDonations = async () => {
       try {
         console.log("Fetching from:", `${API}/mydonations/${donorId}`);
-        const res = await fetch(`${API}/mydonations/${donorId}`);
+        const res = await fetch(`${API}/mydonations/${donorId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         console.log("Response status:", res.status);
         const data = await res.json();
         console.log("Response data:", data);
@@ -64,11 +69,17 @@ export default function MyDonations() {
 
     try {
       const res = await fetch(`${API}/donation/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getStoredAuthToken()}`
+        }
       });
 
       if (res.ok) {
         setDonations(donations.filter((d) => d._id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete donation");
       }
     } catch (err) {
       alert("Failed to delete donation");

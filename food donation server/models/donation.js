@@ -8,6 +8,6 @@ const donationSchema = new mongoose.Schema({
   foodType: String,
   quantity: Number,
   location: String
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Donation", donationSchema);

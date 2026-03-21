@@ -1,47 +1,50 @@
 const donationService = require('../services/donationService');
 
-exports.createDonation = async (req, res) => {
+exports.createDonation = async (req, res, next) => {
   try {
-    const result = await donationService.createDonation(req.body);
+    const result = await donationService.createDonation({
+      ...req.body,
+      donorId: req.user.id
+    });
     res.json(result);
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-exports.getAllDonations = async (req, res) => {
+exports.getAllDonations = async (req, res, next) => {
   try {
     const donations = await donationService.getAllDonations();
     res.json(donations);
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-exports.getDonationsByLocation = async (req, res) => {
+exports.getDonationsByLocation = async (req, res, next) => {
   try {
     const result = await donationService.getDonationsByLocation(req.query.location);
     res.json(result);
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-exports.getMyDonations = async (req, res) => {
+exports.getMyDonations = async (req, res, next) => {
   try {
-    const donations = await donationService.getDonationsByUser(req.params.donorId);
+    const donations = await donationService.getDonationsByUser(req.user.id);
     res.json(donations);
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-exports.deleteDonation = async (req, res) => {
+exports.deleteDonation = async (req, res, next) => {
   try {
-    const result = await donationService.deleteDonation(req.params.id);
+    const result = await donationService.deleteDonation(req.params.id, req.user.id);
     res.json(result);
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 

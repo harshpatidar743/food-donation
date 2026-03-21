@@ -31,14 +31,14 @@ const Page = () => {
     try {
       console.log(`Searching for food in: ${location}`);
 
-      const response = await axios.get<{ donations: Donation[] }>(`${API_BASE_URL}/donationsbylocation`, {
+      const response = await axios.get<Donation[] | { donations: Donation[] }>(`${API_BASE_URL}/donationsbylocation`, {
         params: {
           location: location,
         },
       });
 
       console.log("response : ", response);
-      setAvailableDonations(response.data.donations || []);
+      setAvailableDonations(Array.isArray(response.data) ? response.data : response.data.donations || []);
 
     } catch (error: any) {
       console.error('Error fetching donations:', error);

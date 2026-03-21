@@ -28,12 +28,22 @@ exports.getDonationsByUser = async (userId) => {
   return await Donation.find({ donorId: userId });
 };
 
-exports.deleteDonation = async (id) => {
-  const deleted = await Donation.findByIdAndDelete(id);
-  if (!deleted) {
+exports.deleteDonation = async (id, userId) => {
+  const donation = await Donation.findById(id);
+
+  if (!donation) {
     const error = new Error('Donation not found');
     error.statusCode = 404;
     throw error;
   }
+
+  if (donation.donorId.toString() !== userId) {
+    const error = new Error('Not authorized to delete this donation');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  await donation.deleteOne();
+
   return { message: 'Donation deleted successfully' };
 };

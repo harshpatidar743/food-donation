@@ -5,8 +5,16 @@ import './style.css';
 import axios from 'axios'
 import toast from 'react-hot-toast';
 import { useRouter } from "next/navigation";
+import { getStoredAuthToken, getStoredAuthUser } from "../lib/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+type Donation = {
+    _id?: string;
+    foodType: string;
+    quantity: number;
+    location: string;
+};
 
 const Page = () => {
 
@@ -18,15 +26,15 @@ const Page = () => {
 
     const router = useRouter();
 
-    const [donations, setDonations] = useState<{ foodType: string, quantity: string, location: string }[]>([]);
+    const [donations, setDonations] = useState<Donation[]>([]);
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
 
-        const donorId = localStorage.getItem("donorId");
+        const authUser = getStoredAuthUser();
 
-        if (!donorId) {
+        if (!authUser?.donorId) {
             router.push("/donor/login");
             return;
         }
@@ -34,7 +42,7 @@ const Page = () => {
         const fetchData = async () => {
             const toastId = isClient && toast.loading('fetching data ...');
             try {
-                const response = await axios.get(`${API_BASE_URL}/donations`);
+                const response = await axios.get<Donation[]>(`${API_BASE_URL}/donations`);
                 console.log("Fetched donations: ", response);
                 setDonations(response.data);
                 isClient && toast.success("Data fetched successfully");
@@ -60,10 +68,12 @@ const Page = () => {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
 
-        const donorId = localStorage.getItem("donorId");
+        const authUser = getStoredAuthUser();
+        const token = getStoredAuthToken();
 
-        if (!donorId) {
+        if (!authUser?.donorId || !token) {
             toast.error("Please login as donor first");
+            router.push("/donor/login");
             return;
         }
 
@@ -72,15 +82,22 @@ const Page = () => {
         try {
 
             const payload = {
-                donorId,
                 foodType: formData.foodType,
-                quantity: formData.quantity,
+                quantity: Number(formData.quantity),
                 location: formData.location
             };
 
-            const response = await axios.post(`${API_BASE_URL}/donate`, payload);
+            const response = await axios.post<{ donation: Donation; message: string }>(
+                `${API_BASE_URL}/donate`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
-            setDonations((prev) => [...prev, payload]);
+            setDonations((prev) => [...prev, response.data.donation]);
 
             setFormData({
                 foodType: "",
@@ -88,11 +105,11 @@ const Page = () => {
                 location: "",
             });
 
-            isClient && toast.success("Donated successfully");
+            isClient && toast.success(response.data.message || "Donated successfully");
 
-        } catch (error) {
+        } catch (error: any) {
 
-            isClient && toast.error("Error occurred");
+            isClient && toast.error(error.response?.data?.error || "Error occurred");
             console.log(error);
 
         } finally {

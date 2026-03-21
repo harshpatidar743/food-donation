@@ -12,6 +12,8 @@ type LoginResponse = {
   donorId?: string;
   name?: string;
   role?: UserRole;
+  token?: string;
+  message?: string;
   error?: string;
 };
 
@@ -43,12 +45,13 @@ export default function Login() {
         persistAuthUser({
           donorId: data.donorId,
           name: data.name,
-          role
+          role,
+          token: data.token
         });
 
         router.push(role === "admin" ? "/dashboard/messages" : "/donor/dashboard");
       } else {
-        setError(data.error || "Login failed. Please try again.");
+        setError(data.error || data.message || "Login failed. Please try again.");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
