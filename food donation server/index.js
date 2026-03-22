@@ -11,7 +11,7 @@ const donationRoutes = require("./routes/donationRoutes");
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(cors());
 
 // Connect to MongoDB

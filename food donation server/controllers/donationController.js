@@ -39,6 +39,28 @@ exports.getMyDonations = async (req, res, next) => {
   }
 };
 
+exports.reduceDonationQuantity = async (req, res, next) => {
+  try {
+    const result = await donationService.reduceDonationQuantity(
+      req.params.id,
+      req.user.id,
+      req.body.takenQuantity
+    );
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.markDonationCompleted = async (req, res, next) => {
+  try {
+    const result = await donationService.markDonationCompleted(req.params.id, req.user.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.deleteDonation = async (req, res, next) => {
   try {
     const result = await donationService.deleteDonation(req.params.id, req.user.id);

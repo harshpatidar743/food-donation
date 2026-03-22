@@ -1,180 +1,618 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import './style.css';
-import axios from 'axios'
-import toast from 'react-hot-toast';
+import React, {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useRef,
+  useState
+} from "react";
+import "./style.css";
+import axios from "axios";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getStoredAuthToken, getStoredAuthUser } from "../lib/auth";
+import DonationCard from "./components/DonationCard";
+import { Donation, FoodCategory, QuantityUnit } from "./types";
+import { isDonationAvailable, normalizeText } from "./utils";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024;
+const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{8,14}$/;
+const PINCODE_PATTERN = /^\d{4,10}$/;
 
-type Donation = {
-    _id?: string;
-    foodType: string;
-    quantity: number;
-    location: string;
+type DonationFormData = {
+  foodName: string;
+  foodCategory: FoodCategory | "";
+  quantity: string;
+  quantityUnit: QuantityUnit;
+  foodPreparedTime: string;
+  availableUntil: string;
+  fullAddress: string;
+  pincode: string;
+  contactNumber: string;
+  additionalNotes: string;
+  foodImageData: string;
+  foodImageName: string;
+  foodImageType: string;
 };
 
+type FormErrors = Partial<Record<keyof DonationFormData, string>>;
+
+const createInitialFormData = (): DonationFormData => ({
+  foodName: "",
+  foodCategory: "",
+  quantity: "",
+  quantityUnit: "plates",
+  foodPreparedTime: "",
+  availableUntil: "",
+  fullAddress: "",
+  pincode: "",
+  contactNumber: "",
+  additionalNotes: "",
+  foodImageData: "",
+  foodImageName: "",
+  foodImageType: ""
+});
+
 const Page = () => {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const preparedTimeInputRef = useRef<HTMLInputElement | null>(null);
+  const availableUntilInputRef = useRef<HTMLInputElement | null>(null);
+  const [formData, setFormData] = useState<DonationFormData>(createInitialFormData);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const visibleDonations = donations.filter((donation) => isDonationAvailable(donation));
 
-    const [formData, setFormData] = useState({
-        foodType: '',
-        quantity: '',
-        location: '',
-    });
+  useEffect(() => {
+    const authUser = getStoredAuthUser();
 
-    const router = useRouter();
+    if (!authUser?.donorId) {
+      router.push("/donor/login");
+      return;
+    }
 
-    const [donations, setDonations] = useState<Donation[]>([]);
-    const [isClient, setIsClient] = useState(false);
+    const fetchDonations = async (showToast = false) => {
+      const toastId = toast.loading("Fetching active donations...");
 
-    useEffect(() => {
-        setIsClient(true);
-
-        const authUser = getStoredAuthUser();
-
-        if (!authUser?.donorId) {
-            router.push("/donor/login");
-            return;
+      try {
+        const response = await axios.get<Donation[]>(`${API_BASE_URL}/donations`);
+        setDonations(response.data.filter((donation) => isDonationAvailable(donation)));
+        if (showToast) {
+          toast.success("Active donations loaded.", { id: toastId });
+        } else {
+          toast.dismiss(toastId);
         }
-
-        const fetchData = async () => {
-            const toastId = isClient && toast.loading('fetching data ...');
-            try {
-                const response = await axios.get<Donation[]>(`${API_BASE_URL}/donations`);
-                console.log("Fetched donations: ", response);
-                setDonations(response.data);
-                isClient && toast.success("Data fetched successfully");
-            } catch (error) {
-                isClient && toast.error("Error occurred");
-                console.error("Error fetching donations: ", error);
-            } finally {
-                if (isClient && toastId) toast.dismiss(toastId);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    const handleInputChange = (e: any) => {
-        const { id, value } = e.target;
-        setFormData({
-            ...formData,
-            [id]: value,
-        });
+      } catch {
+        if (showToast) {
+          toast.error("Unable to load active donations right now.", { id: toastId });
+        } else {
+          toast.dismiss(toastId);
+        }
+      }
     };
 
-    const handleSubmit = async (e: any) => {
-        e.preventDefault();
+    fetchDonations(true);
+    const intervalId = setInterval(() => {
+      fetchDonations();
+    }, 5000);
 
-        const authUser = getStoredAuthUser();
-        const token = getStoredAuthToken();
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [router]);
 
-        if (!authUser?.donorId || !token) {
-            toast.error("Please login as donor first");
-            router.push("/donor/login");
-            return;
-        }
+  const validateForm = (values: DonationFormData): FormErrors => {
+    const errors: FormErrors = {};
+    const trimmedFoodName = values.foodName.trim();
+    const trimmedAddress = values.fullAddress.trim();
+    const trimmedContactNumber = values.contactNumber.trim();
+    const trimmedPincode = values.pincode.trim();
+    const parsedQuantity = Number(values.quantity);
+    const preparedTime = values.foodPreparedTime ? new Date(values.foodPreparedTime) : null;
+    const availableUntil = values.availableUntil ? new Date(values.availableUntil) : null;
 
-        const toastId = isClient && toast.loading("Donating...");
+    if (!trimmedFoodName) {
+      errors.foodName = "Food name is required.";
+    }
 
-        try {
+    if (!values.foodCategory) {
+      errors.foodCategory = "Please select a food category.";
+    }
 
-            const payload = {
-                foodType: formData.foodType,
-                quantity: Number(formData.quantity),
-                location: formData.location
-            };
+    if (!values.quantity.trim()) {
+      errors.quantity = "Quantity is required.";
+    } else if (Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      errors.quantity = "Quantity must be a positive number.";
+    }
 
-            const response = await axios.post<{ donation: Donation; message: string }>(
-                `${API_BASE_URL}/donate`,
-                payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+    if (!values.foodPreparedTime) {
+      errors.foodPreparedTime = "Food prepared time is required.";
+    } else if (!preparedTime || Number.isNaN(preparedTime.getTime())) {
+      errors.foodPreparedTime = "Enter a valid prepared date and time.";
+    }
 
-            setDonations((prev) => [...prev, response.data.donation]);
+    if (!values.availableUntil) {
+      errors.availableUntil = "Available until / expiry time is required.";
+    } else if (!availableUntil || Number.isNaN(availableUntil.getTime())) {
+      errors.availableUntil = "Enter a valid expiry date and time.";
+    } else if (availableUntil.getTime() <= Date.now()) {
+      errors.availableUntil = "Expiry time must be after the current time.";
+    }
 
-            setFormData({
-                foodType: "",
-                quantity: "",
-                location: "",
-            });
+    if (
+      preparedTime &&
+      availableUntil &&
+      !Number.isNaN(preparedTime.getTime()) &&
+      !Number.isNaN(availableUntil.getTime()) &&
+      availableUntil <= preparedTime
+    ) {
+      errors.availableUntil = "Expiry time must be after the prepared time.";
+    }
 
-            isClient && toast.success(response.data.message || "Donated successfully");
+    if (!trimmedAddress) {
+      errors.fullAddress = "Full address is required.";
+    }
 
-        } catch (error: any) {
+    if (!trimmedContactNumber) {
+      errors.contactNumber = "Contact number is required.";
+    } else if (!PHONE_PATTERN.test(trimmedContactNumber)) {
+      errors.contactNumber = "Enter a valid phone number.";
+    }
 
-            isClient && toast.error(error.response?.data?.error || "Error occurred");
-            console.log(error);
+    if (trimmedPincode && !PINCODE_PATTERN.test(trimmedPincode)) {
+      errors.pincode = "Pincode must contain 4 to 10 digits.";
+    }
 
-        } finally {
+    if (values.foodImageName && !values.foodImageData) {
+      errors.foodImageData = "Selected image could not be processed. Please choose it again.";
+    }
 
-            if (isClient && toastId) toast.dismiss(toastId);
+    return errors;
+  };
 
-        }
+  const handleInputChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = event.target;
+    const fieldName = name as keyof DonationFormData;
+
+    setFormData((currentData) => ({
+      ...currentData,
+      [fieldName]: value
+    }));
+
+    setFormErrors((currentErrors) => ({
+      ...currentErrors,
+      [fieldName]: ""
+    }));
+
+    setSubmitError("");
+    setSuccessMessage("");
+  };
+
+  const handleNormalizeBlur = (fieldName: "foodName" | "fullAddress") => {
+    setFormData((currentData) => ({
+      ...currentData,
+      [fieldName]: normalizeText(currentData[fieldName])
+    }));
+  };
+
+  const handleDateTimeInputClick = (inputRef: React.RefObject<HTMLInputElement>) => () => {
+    inputRef.current?.showPicker?.();
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    setSubmitError("");
+    setSuccessMessage("");
+
+    if (!file) {
+      setFormData((currentData) => ({
+        ...currentData,
+        foodImageData: "",
+        foodImageName: "",
+        foodImageType: ""
+      }));
+
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        foodImageData: ""
+      }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        foodImageData: "Only image files are allowed."
+      }));
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        foodImageData: "Image size must be 3 MB or less."
+      }));
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+
+      setFormData((currentData) => ({
+        ...currentData,
+        foodImageData: dataUrl,
+        foodImageName: file.name,
+        foodImageType: file.type
+      }));
+
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        foodImageData: ""
+      }));
     };
 
-    return (
-        <div>
-            <header>
-                <div className="hero-small">
-                    <h1><span className="dual-color-text">Donate</span> Your Excess Food</h1>
-                    <p>Make a difference by donating your surplus food to those in need.</p>
-                </div>
-            </header>
-            <main>
-                <section className="form-section">
-                    <h2>Fill in the Details to Donate</h2>
-                    <form id="donationForm" className="form-container" onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            id="foodType"
-                            placeholder="Type of Food"
-                            value={formData.foodType}
-                            onChange={handleInputChange}
-                            required
-                        />
+    reader.onerror = () => {
+      setFormErrors((currentErrors) => ({
+        ...currentErrors,
+        foodImageData: "Unable to read the selected image."
+      }));
+    };
 
-                        <input
-                            type="number"
-                            id="quantity"
-                            placeholder="Quantity"
-                            value={formData.quantity}
-                            onChange={handleInputChange}
-                            required
-                        />
+    reader.readAsDataURL(file);
+  };
 
-                        <input
-                            type="text"
-                            id="location"
-                            placeholder="Location"
-                            value={formData.location}
-                            onChange={handleInputChange}
-                            required
-                        />
+  const resetForm = () => {
+    setFormData(createInitialFormData());
+    setFormErrors({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
-                        <button type="submit" className="button">Donate Now</button>
-                    </form>
-                </section>
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-                <section id="recipients" className="donation-list-section">
-                    <h2>Available Donations</h2>
-                    <ul id="donationsList">
-                        {donations.map((donation, index) => (
-                            <li key={index}>
-                                Donation: {donation.quantity} units of {donation.foodType} in {donation.location}.
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            </main>
+    const authUser = getStoredAuthUser();
+    const token = getStoredAuthToken();
+
+    if (!authUser?.donorId || !token) {
+      toast.error("Please login as donor first.");
+      router.push("/donor/login");
+      return;
+    }
+
+    const validationErrors = validateForm(formData);
+    setFormErrors(validationErrors);
+    setSubmitError("");
+    setSuccessMessage("");
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const payload = {
+      foodName: normalizeText(formData.foodName),
+      foodCategory: formData.foodCategory,
+      quantity: Number(formData.quantity),
+      quantityUnit: formData.quantityUnit,
+      foodPreparedTime: new Date(formData.foodPreparedTime).toISOString(),
+      availableUntil: new Date(formData.availableUntil).toISOString(),
+      fullAddress: normalizeText(formData.fullAddress),
+      pincode: formData.pincode.trim(),
+      contactNumber: formData.contactNumber.trim(),
+      additionalNotes: formData.additionalNotes.trim(),
+      foodImage: formData.foodImageData
+        ? {
+            fileName: formData.foodImageName,
+            contentType: formData.foodImageType,
+            dataUrl: formData.foodImageData
+          }
+        : undefined
+    };
+
+    try {
+      const response = await axios.post<{ donation: Donation; message: string }>(
+        `${API_BASE_URL}/donate`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setDonations((currentDonations) =>
+        isDonationAvailable(response.data.donation)
+          ? [response.data.donation, ...currentDonations]
+          : currentDonations
+      );
+      setSuccessMessage(
+        response.data.message || "Donation posted successfully for self-pickup."
+      );
+      resetForm();
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error || "Unable to submit the donation right now."
+        : "Unable to submit the donation right now.";
+
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div>
+      <header>
+        <div className="hero-small">
+          <h1>
+            <span className="dual-color-text">Donate</span> Your Excess Food
+          </h1>
+          <p>Make a difference by donating your surplus food to those in need.</p>
         </div>
-    );
+      </header>
+
+      <main>
+        <section className="form-section">
+          <h2>Fill in the Details to Donate</h2>
+          <p className="form-subtitle">
+            Receivers will collect this donation directly from your location.
+          </p>
+
+          {submitError && <div className="status-message error-message">{submitError}</div>}
+          {successMessage && (
+            <div className="status-message success-message">{successMessage}</div>
+          )}
+
+          <form
+            id="donationForm"
+            className="form-container"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="foodName">Food Name</label>
+                <input
+                  type="text"
+                  id="foodName"
+                  name="foodName"
+                  placeholder="Example: Chapati, Veg pulao, bread"
+                  value={formData.foodName}
+                  onBlur={() => handleNormalizeBlur("foodName")}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                />
+                {formErrors.foodName && (
+                  <p className="field-error">{formErrors.foodName}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="foodCategory">Food Category</label>
+                <select
+                  id="foodCategory"
+                  name="foodCategory"
+                  value={formData.foodCategory}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                >
+                  <option value="">Select category</option>
+                  <option value="Veg">Veg</option>
+                  <option value="Non-veg">Non-veg</option>
+                </select>
+                {formErrors.foodCategory && (
+                  <p className="field-error">{formErrors.foodCategory}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="quantity">Quantity</label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  placeholder="Example: 10"
+                  min="1"
+                  value={formData.quantity}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                />
+                {formErrors.quantity && (
+                  <p className="field-error">{formErrors.quantity}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="quantityUnit">Quantity Type</label>
+                <select
+                  id="quantityUnit"
+                  name="quantityUnit"
+                  value={formData.quantityUnit}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                >
+                  <option value="plates">Plates</option>
+                  <option value="people">People</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="foodPreparedTime">Food Prepared Time</label>
+                <input
+                  ref={preparedTimeInputRef}
+                  type="datetime-local"
+                  id="foodPreparedTime"
+                  name="foodPreparedTime"
+                  value={formData.foodPreparedTime}
+                  onClick={handleDateTimeInputClick(preparedTimeInputRef)}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="cursor-pointer"
+                  required
+                />
+                {formErrors.foodPreparedTime && (
+                  <p className="field-error">{formErrors.foodPreparedTime}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="availableUntil">Available Until / Expiry Time</label>
+                <input
+                  ref={availableUntilInputRef}
+                  type="datetime-local"
+                  id="availableUntil"
+                  name="availableUntil"
+                  value={formData.availableUntil}
+                  onClick={handleDateTimeInputClick(availableUntilInputRef)}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  className="cursor-pointer"
+                  required
+                />
+                {formErrors.availableUntil && (
+                  <p className="field-error">{formErrors.availableUntil}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="pincode">Pincode</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="pincode"
+                  name="pincode"
+                  placeholder="Enter pincode"
+                  value={formData.pincode}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                />
+                {formErrors.pincode && <p className="field-error">{formErrors.pincode}</p>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactNumber">Contact Number</label>
+                <input
+                  type="tel"
+                  id="contactNumber"
+                  name="contactNumber"
+                  placeholder="Enter contact number"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  required
+                />
+                {formErrors.contactNumber && (
+                  <p className="field-error">{formErrors.contactNumber}</p>
+                )}
+              </div>
+
+              <div className="form-group full-width">
+                <label htmlFor="fullAddress">Full Address</label>
+                <textarea
+                  id="fullAddress"
+                  name="fullAddress"
+                  placeholder="Enter the full pickup address"
+                  value={formData.fullAddress}
+                  onBlur={() => handleNormalizeBlur("fullAddress")}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  rows={4}
+                  required
+                />
+                {formErrors.fullAddress && (
+                  <p className="field-error">{formErrors.fullAddress}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="foodImage">Food Image</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="foodImage"
+                  name="foodImage"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={isSubmitting}
+                />
+                <p className="field-hint">
+                  Optional. Upload a clear food image up to 3 MB.
+                </p>
+                {formData.foodImageName && (
+                  <p className="field-hint">Selected file: {formData.foodImageName}</p>
+                )}
+                {formErrors.foodImageData && (
+                  <p className="field-error">{formErrors.foodImageData}</p>
+                )}
+              </div>
+
+              <div className="form-group full-width">
+                <label htmlFor="additionalNotes">Additional Notes</label>
+                <textarea
+                  id="additionalNotes"
+                  name="additionalNotes"
+                  placeholder="Optional notes about packaging, allergens, or handling"
+                  value={formData.additionalNotes}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="button" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Donate Now"}
+            </button>
+          </form>
+        </section>
+
+        <section id="recipients" className="donation-list-section">
+          <div className="section-heading">
+            <div>
+              <h2>Active Donations</h2>
+              <p className="section-subtitle">
+                Clean donation listings with urgency and contact details.
+              </p>
+            </div>
+          </div>
+
+          {visibleDonations.length === 0 ? (
+            <p className="empty-message">
+              No active donations yet. Your next donation can be the first one listed.
+            </p>
+          ) : (
+            <div className="donation-cards">
+              {visibleDonations.map((donation) => (
+                <DonationCard key={donation._id} donation={donation} />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
 };
 
 export default Page;
