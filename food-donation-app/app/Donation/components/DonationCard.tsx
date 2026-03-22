@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Donation } from "../types";
 import {
   formatPostedAgo,
-  formatQuantityDisplay,
   formatRemainingQuantityDisplay,
   getDonationAddress,
   getDonationStatus,
