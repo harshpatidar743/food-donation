@@ -175,8 +175,8 @@ export default function MyDonations() {
     return (
       <div className="my-donations-page">
         <div className="my-donations-container">
-          <div className="loading-state">
-            <div className="spinner">Loading...</div>
+          <div className="loading-state" role="status" aria-live="polite">
+            <div className="spinner" aria-hidden="true" />
             <p>Loading your donations...</p>
           </div>
         </div>

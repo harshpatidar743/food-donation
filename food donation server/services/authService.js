@@ -20,12 +20,38 @@ const normalizeRole = (value) => ROLE_MAP[normalizeText(value).toLowerCase()];
 const getRegistrationRole = (value) => normalizeRole(value) || 'individual';
 const getStoredRole = (donor) => normalizeRole(donor.role) || normalizeRole(donor.userType) || 'individual';
 const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
+const assignIfPresent = (target, key, value) => {
+  const normalizedValue = normalizeText(value);
+
+  if (normalizedValue) {
+    target[key] = normalizedValue;
+  }
+};
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
 const generateJWT = (donorId) => jwt.sign({ id: donorId }, jwtSecret, { expiresIn: '30d' });
 
 exports.registerUser = async (data) => {
-  const { name, email, password, phone, userType, accountType, role } = data;
+  const {
+    name,
+    email,
+    password,
+    phone,
+    userType,
+    accountType,
+    role,
+    address,
+    city,
+    organizationName,
+    registrationNumber,
+    organizationAddress,
+    organizationCertificateName,
+    businessName,
+    businessType,
+    ownerName,
+    businessAddress,
+    gstNumber
+  } = data;
   const normalizedName = normalizeText(name);
   const normalizedEmail = normalizeEmail(email);
   const normalizedPhone = normalizeText(phone);
@@ -47,16 +73,39 @@ exports.registerUser = async (data) => {
   const hashedPassword = await bcrypt.hash(password, salt);
   const token = generateToken();
   const assignedRole = getRegistrationRole(accountType || role || userType);
-
-  const donor = new Donor({
+  const donorData = {
     name: normalizedName,
     email: normalizedEmail,
     password: hashedPassword,
     phone: normalizedPhone,
+    userType: assignedRole,
     role: assignedRole,
     isVerified: true,
     verificationToken: token
-  });
+  };
+
+  if (assignedRole === 'individual') {
+    assignIfPresent(donorData, 'address', address);
+  }
+
+  if (assignedRole === 'organization') {
+    assignIfPresent(donorData, 'city', city);
+    assignIfPresent(donorData, 'organizationName', organizationName);
+    assignIfPresent(donorData, 'registrationNumber', registrationNumber);
+    assignIfPresent(donorData, 'organizationAddress', organizationAddress);
+    assignIfPresent(donorData, 'organizationCertificateName', organizationCertificateName);
+  }
+
+  if (assignedRole === 'business/restaurant') {
+    assignIfPresent(donorData, 'city', city);
+    assignIfPresent(donorData, 'businessName', businessName);
+    assignIfPresent(donorData, 'businessType', businessType);
+    assignIfPresent(donorData, 'ownerName', ownerName);
+    assignIfPresent(donorData, 'businessAddress', businessAddress);
+    assignIfPresent(donorData, 'gstNumber', gstNumber);
+  }
+
+  const donor = new Donor(donorData);
 
   await donor.save();
 

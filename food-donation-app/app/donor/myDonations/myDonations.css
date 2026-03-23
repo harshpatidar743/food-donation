@@ -272,31 +272,44 @@
 }
 
 .donate-now-button {
-    padding: 14px 30px;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    color: #ffffff;
+    padding: 14px;
+    background: linear-gradient(135deg, #ffcc00, #ffb300);
+    color: #111111;
     text-decoration: none;
-    border-radius: 6px;
-    font-size: 1.1em;
-    font-weight: 600;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
     display: inline-block;
     transition: transform 0.2s ease, background 0.3s ease;
 }
 
 .donate-now-button:hover {
-    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    background: linear-gradient(135deg, #ffb300, #ff8f00);
     transform: scale(1.05);
 }
 
 .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
     text-align: center;
     padding: 60px 20px;
 }
 
 .loading-state .spinner {
-    font-size: 1.6em;
-    font-weight: 700;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.18);
+    border-top-color: #ffcc00;
     animation: spin 1s linear infinite;
+}
+
+.loading-state p {
+    margin: 0;
+    color: #cccccc;
+    font-size: 1rem;
 }
 
 @keyframes spin {

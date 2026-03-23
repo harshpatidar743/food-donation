@@ -63,6 +63,49 @@ const createInitialForm = (userType: UserType) => ({
   gstNumber: ""
 });
 
+const buildPayload = (form: ReturnType<typeof createInitialForm>, userType: UserType) => {
+  const normalizedUserType = userTypeToRole[userType];
+  const basePayload = {
+    email: form.email,
+    password: form.password,
+    phone: form.phone,
+    userType: normalizedUserType,
+    accountType: normalizedUserType,
+    role: normalizedUserType
+  };
+
+  if (userType === "individual") {
+    return {
+      ...basePayload,
+      name: form.name,
+      address: form.address
+    };
+  }
+
+  if (userType === "organization") {
+    return {
+      ...basePayload,
+      name: form.organizationName,
+      city: form.city,
+      organizationName: form.organizationName,
+      registrationNumber: form.registrationNumber,
+      organizationAddress: form.organizationAddress,
+      organizationCertificateName: form.organizationCertificateName
+    };
+  }
+
+  return {
+    ...basePayload,
+    name: form.businessName,
+    city: form.city,
+    businessName: form.businessName,
+    businessType: form.businessType,
+    ownerName: form.ownerName,
+    businessAddress: form.businessAddress,
+    gstNumber: form.gstNumber
+  };
+};
+
 export default function Register() {
   const router = useRouter();
   const [userType, setUserType] = useState<UserType>("individual");
@@ -99,17 +142,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const payload = {
-        ...form,
-        accountType: userType,
-        name:
-          userType === "organization"
-            ? form.organizationName
-            : userType === "business"
-              ? form.businessName
-              : form.name,
-        role: userTypeToRole[userType]
-      };
+      const payload = buildPayload(form, userType);
 
       const res = await fetch(`${API}/register`, {
         method: "POST",

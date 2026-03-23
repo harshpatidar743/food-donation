@@ -26,6 +26,61 @@ const donorSchema = new mongoose.Schema({
     trim: true
   },
 
+  address: {
+    type: String,
+    trim: true
+  },
+
+  city: {
+    type: String,
+    trim: true
+  },
+
+  organizationName: {
+    type: String,
+    trim: true
+  },
+
+  registrationNumber: {
+    type: String,
+    trim: true
+  },
+
+  organizationAddress: {
+    type: String,
+    trim: true
+  },
+
+  organizationCertificateName: {
+    type: String,
+    trim: true
+  },
+
+  businessName: {
+    type: String,
+    trim: true
+  },
+
+  businessType: {
+    type: String,
+    trim: true
+  },
+
+  ownerName: {
+    type: String,
+    trim: true
+  },
+
+  businessAddress: {
+    type: String,
+    trim: true
+  },
+
+  gstNumber: {
+    type: String,
+    trim: true
+  },
+
   userType: {
     type: String
   },
