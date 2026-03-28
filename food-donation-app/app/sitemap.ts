@@ -26,22 +26,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/AboutUs`,
       lastModified,
       changeFrequency: "monthly",
-      priority: 0.6
+      priority: 0.5
     },
     {
       url: `${SITE_URL}/ContactUs`,
-      lastModified,
-      changeFrequency: "monthly",
-      priority: 0.6
-    },
-    {
-      url: `${SITE_URL}/donor/login`,
-      lastModified,
-      changeFrequency: "monthly",
-      priority: 0.4
-    },
-    {
-      url: `${SITE_URL}/donor/register`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.5
@@ -52,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const donationRoutes: MetadataRoute.Sitemap = activeDonations.map((donation) => ({
     url: buildDonationDetailUrl(donation._id),
     lastModified: new Date(donation.updatedAt || donation.createdAt || lastModified),
-    changeFrequency: "hourly",
+    changeFrequency: "daily",
     priority: 0.8
   }));
 
