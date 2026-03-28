@@ -5,6 +5,7 @@ import "./styles.css";
 import { Toaster } from 'react-hot-toast';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Script from "next/script";
 
 
 const inter = Inter({
@@ -30,6 +31,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${robotoMono.variable}`}>
+
+        {/* ✅ Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-T8FL7NJWTR"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-T8FL7NJWTR');
+        `}
+        </Script>
+
         <Navbar />
         <div className="app-shell">
           {children}
