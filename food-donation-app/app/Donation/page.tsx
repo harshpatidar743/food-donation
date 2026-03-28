@@ -1,20 +1,22 @@
 "use client";
 
-import React, {
-  ChangeEvent,
-  FormEvent,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import React, { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import "./style.css";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getStoredAuthToken, getStoredAuthUser } from "../lib/auth";
 import DonationCard from "./components/DonationCard";
-import { Donation, FoodCategory, QuantityUnit } from "./types";
+import { Donation, FoodCategory, QuantityUnit, SearchDonation } from "./types";
 import { isDonationAvailable, normalizeText } from "./utils";
+import { buildFullAddress, type LocationDetails } from "../lib/location";
+import { useCurrentLocation } from "../hooks/useCurrentLocation";
+import dynamic from "next/dynamic";
+
+const InteractiveLocationMap = dynamic(
+  () => import("../components/InteractiveLocationMap").then((mod) => ({ default: mod.default })),
+  { ssr: false, loading: () => <div>Loading map...</div> }
+);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024;
@@ -28,8 +30,7 @@ type DonationFormData = {
   quantityUnit: QuantityUnit;
   foodPreparedTime: string;
   availableUntil: string;
-  fullAddress: string;
-  pincode: string;
+  pickupPoint: string;
   contactNumber: string;
   additionalNotes: string;
   foodImageData: string;
@@ -37,7 +38,8 @@ type DonationFormData = {
   foodImageType: string;
 };
 
-type FormErrors = Partial<Record<keyof DonationFormData, string>>;
+type FormField = keyof DonationFormData | "location";
+type FormErrors = Partial<Record<FormField, string>>;
 
 const createInitialFormData = (): DonationFormData => ({
   foodName: "",
@@ -46,8 +48,7 @@ const createInitialFormData = (): DonationFormData => ({
   quantityUnit: "plates",
   foodPreparedTime: "",
   availableUntil: "",
-  fullAddress: "",
-  pincode: "",
+  pickupPoint: "",
   contactNumber: "",
   additionalNotes: "",
   foodImageData: "",
@@ -66,7 +67,15 @@ const Page = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [donations, setDonations] = useState<Donation[]>([]);
+  const {
+    location: currentLocation,
+    isLoading: isLocationLoading,
+    error: locationError,
+    refreshLocation
+  } = useCurrentLocation();
+  const [pickupLocation, setPickupLocation] = useState(currentLocation);
   const visibleDonations = donations.filter((donation) => isDonationAvailable(donation));
+  const fullAddressPreview = pickupLocation ? buildFullAddress(formData.pickupPoint, pickupLocation) : '';
 
   useEffect(() => {
     const authUser = getStoredAuthUser();
@@ -99,19 +108,34 @@ const Page = () => {
     fetchDonations(true);
     const intervalId = setInterval(() => {
       fetchDonations();
-    }, 5000);
+    }, 30000);
 
     return () => {
       clearInterval(intervalId);
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!currentLocation) {
+      return;
+    }
+
+    setFormErrors((currentErrors) => ({
+      ...currentErrors,
+      location: ""
+    }));
+  }, [currentLocation]);
+
+  const handleLocationChange = useCallback((location: LocationDetails) => {
+    setPickupLocation(location);
+    setFormErrors((errors) => ({ ...errors, location: "" }));
+  }, []);
+
   const validateForm = (values: DonationFormData): FormErrors => {
     const errors: FormErrors = {};
     const trimmedFoodName = values.foodName.trim();
-    const trimmedAddress = values.fullAddress.trim();
+    const trimmedPickupPoint = values.pickupPoint.trim();
     const trimmedContactNumber = values.contactNumber.trim();
-    const trimmedPincode = values.pincode.trim();
     const parsedQuantity = Number(values.quantity);
     const preparedTime = values.foodPreparedTime ? new Date(values.foodPreparedTime) : null;
     const availableUntil = values.availableUntil ? new Date(values.availableUntil) : null;
@@ -154,18 +178,23 @@ const Page = () => {
       errors.availableUntil = "Expiry time must be after the prepared time.";
     }
 
-    if (!trimmedAddress) {
-      errors.fullAddress = "Full address is required.";
+    if (!pickupLocation) {
+      errors.location = locationError || "Please set pickup location using the map.";
+    }
+
+    if (pickupLocation?.pincode && !PINCODE_PATTERN.test(pickupLocation.pincode.trim())) {
+      errors.location = "Pincode is invalid. Adjust marker or refresh GPS.";
+    }
+
+                if (!trimmedPickupPoint) {
+      errors.pickupPoint =
+        "House No / Building Name / Restaurant Name / NGO Name is required.";
     }
 
     if (!trimmedContactNumber) {
       errors.contactNumber = "Contact number is required.";
     } else if (!PHONE_PATTERN.test(trimmedContactNumber)) {
       errors.contactNumber = "Enter a valid phone number.";
-    }
-
-    if (trimmedPincode && !PINCODE_PATTERN.test(trimmedPincode)) {
-      errors.pincode = "Pincode must contain 4 to 10 digits.";
     }
 
     if (values.foodImageName && !values.foodImageData) {
@@ -188,14 +217,15 @@ const Page = () => {
 
     setFormErrors((currentErrors) => ({
       ...currentErrors,
-      [fieldName]: ""
+      [fieldName]: "",
+      ...(fieldName === "pickupPoint" ? { location: "" } : {})
     }));
 
     setSubmitError("");
     setSuccessMessage("");
   };
 
-  const handleNormalizeBlur = (fieldName: "foodName" | "fullAddress") => {
+  const handleNormalizeBlur = (fieldName: "foodName" | "pickupPoint") => {
     setFormData((currentData) => ({
       ...currentData,
       [fieldName]: normalizeText(currentData[fieldName])
@@ -298,6 +328,7 @@ const Page = () => {
     }
 
     const validationErrors = validateForm(formData);
+    const normalizedFullAddress = buildFullAddress(formData.pickupPoint, currentLocation);
     setFormErrors(validationErrors);
     setSubmitError("");
     setSuccessMessage("");
@@ -315,8 +346,14 @@ const Page = () => {
       quantityUnit: formData.quantityUnit,
       foodPreparedTime: new Date(formData.foodPreparedTime).toISOString(),
       availableUntil: new Date(formData.availableUntil).toISOString(),
-      fullAddress: normalizeText(formData.fullAddress),
-      pincode: formData.pincode.trim(),
+      location: pickupLocation?.displayLocation || "",
+      lat: pickupLocation?.lat,
+      lng: pickupLocation?.lng,
+      area: pickupLocation?.area || "",
+      city: pickupLocation?.city || "",
+      state: pickupLocation?.state || "",
+      fullAddress: pickupLocation?.fullAddress || normalizedFullAddress,
+      pincode: pickupLocation?.pincode || "",
       contactNumber: formData.contactNumber.trim(),
       additionalNotes: formData.additionalNotes.trim(),
       foodImage: formData.foodImageData
@@ -402,9 +439,7 @@ const Page = () => {
                   disabled={isSubmitting}
                   required
                 />
-                {formErrors.foodName && (
-                  <p className="field-error">{formErrors.foodName}</p>
-                )}
+                {formErrors.foodName && <p className="field-error">{formErrors.foodName}</p>}
               </div>
 
               <div className="form-group">
@@ -439,9 +474,7 @@ const Page = () => {
                   disabled={isSubmitting}
                   required
                 />
-                {formErrors.quantity && (
-                  <p className="field-error">{formErrors.quantity}</p>
-                )}
+                {formErrors.quantity && <p className="field-error">{formErrors.quantity}</p>}
               </div>
 
               <div className="form-group">
@@ -496,19 +529,35 @@ const Page = () => {
                 )}
               </div>
 
+              <div className="form-group full-width">
+                <label>Your Location</label>
+                <InteractiveLocationMap 
+                  onLocationChange={handleLocationChange}
+                  currentLocation={currentLocation}
+                  isGpsLoading={isLocationLoading}
+                  onRefreshGps={refreshLocation}
+                  className="donation-location-map"
+                />
+              </div>
+
               <div className="form-group">
-                <label htmlFor="pincode">Pincode</label>
+                <label htmlFor="pickupPoint">
+                  House No / Building Name / Restaurant Name / NGO Name
+                </label>
                 <input
                   type="text"
-                  inputMode="numeric"
-                  id="pincode"
-                  name="pincode"
-                  placeholder="Enter pincode"
-                  value={formData.pincode}
+                  id="pickupPoint"
+                  name="pickupPoint"
+                  placeholder="Example: House 21, Green Residency"
+                  value={formData.pickupPoint}
+                  onBlur={() => handleNormalizeBlur("pickupPoint")}
                   onChange={handleInputChange}
                   disabled={isSubmitting}
+                  required
                 />
-                {formErrors.pincode && <p className="field-error">{formErrors.pincode}</p>}
+                {formErrors.pickupPoint && (
+                  <p className="field-error">{formErrors.pickupPoint}</p>
+                )}
               </div>
 
               <div className="form-group">
@@ -529,21 +578,14 @@ const Page = () => {
               </div>
 
               <div className="form-group full-width">
-                <label htmlFor="fullAddress">Full Address</label>
+                <label htmlFor="fullAddressPreview">Full Address Preview</label>
                 <textarea
-                  id="fullAddress"
-                  name="fullAddress"
-                  placeholder="Enter the full pickup address"
-                  value={formData.fullAddress}
-                  onBlur={() => handleNormalizeBlur("fullAddress")}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  rows={4}
-                  required
+                  id="fullAddressPreview"
+                  value={pickupLocation?.fullAddress || fullAddressPreview || "Complete pickup address (updated with map)"}
+                  rows={3}
+                  className="location-preview"
+                  readOnly
                 />
-                {formErrors.fullAddress && (
-                  <p className="field-error">{formErrors.fullAddress}</p>
-                )}
               </div>
 
               <div className="form-group">
@@ -582,7 +624,11 @@ const Page = () => {
               </div>
             </div>
 
-            <button type="submit" className="button" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="button"
+              disabled={isSubmitting || !pickupLocation || isLocationLoading}
+            >
               {isSubmitting ? "Submitting..." : "Donate Now"}
             </button>
           </form>

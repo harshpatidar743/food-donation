@@ -1,34 +1,55 @@
-export type FoodCategory = "Veg" | "Non-veg";
-
-export type QuantityUnit = "people" | "plates";
-export type DonationStatus = "active" | "completed" | "expired";
-
-export type DonationImage = {
-  fileName: string;
-  contentType: string;
-  dataUrl: string;
-};
-
-export type Donation = {
-  _id?: string;
-  foodName?: string;
+export interface Donation {
+  _id: string;
+  donorId: string | {
+    _id: string;
+    name: string;
+  };
   foodType?: string;
-  foodCategory?: FoodCategory;
+  foodName: string;
+  foodCategory: 'Veg' | 'Non-veg';
   quantity: number;
-  totalQuantity?: number;
-  remainingQuantity?: number;
-  quantityUnit?: QuantityUnit;
-  status?: DonationStatus;
-  foodPreparedTime?: string;
-  availableUntil?: string;
-  fullAddress?: string;
-  location?: string;
+  totalQuantity: number;
+  remainingQuantity: number;
+  quantityUnit: 'plates' | 'people';
+  status: 'active' | 'completed' | 'expired';
+  foodPreparedTime: string;
+  availableUntil: string;
+  lat?: number;
+  lng?: number;
+  area?: string;
+  city?: string;
+  state?: string;
+  location: string;
+  fullAddress: string;
   pincode?: string;
-  contactNumber?: string;
+  contactNumber: string;
+  foodImage?: {
+    fileName: string;
+    contentType: string;
+    dataUrl: string;
+  };
   additionalNotes?: string;
-  foodImage?: DonationImage;
-  createdAt?: string;
-  donorId?: {
-    name?: string;
-  } | string;
-};
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SearchDonation extends Donation {
+  routeInfo?: {
+    routeTimeMin: number;
+    routeDistanceKm: number;
+    walkingTimeMin: number;
+    walkingDistanceKm: number;
+    error?: string;
+  };
+}
+
+export type FoodCategory = 'Veg' | 'Non-veg';
+
+export interface RouteInfo {
+  routeTimeMin: number;
+  routeDistanceKm: number;
+  walkingTimeMin: number;
+  walkingDistanceKm: number;
+  error?: string;
+}
+export type QuantityUnit = 'plates' | 'people';

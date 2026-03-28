@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import type { Donation, SearchDonation } from '../types';
+import type { Donation, SearchDonation } from '../Donation/types';
 import {
   formatAvailableQuantityDisplay,
   formatDistance,
@@ -14,11 +14,11 @@ import {
   getExpiryMeta,
   getPhoneHref,
   normalizeText
-} from '../utils';
+} from '../Donation/utils';
 
-// Dynamic import LocationMapPreview to prevent SSR execution
+// Dynamic import for SSR safety
 const LocationMapPreview = dynamic(
-  () => import('../../components/LocationMapPreview'),
+  () => import('@/app/components/LocationMapPreview').then((mod) => ({ default: mod.default })),
   { ssr: false }
 );
 
@@ -124,4 +124,3 @@ export default function DonationCard({
     </article>
   );
 }
-

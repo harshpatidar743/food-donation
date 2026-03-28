@@ -6,14 +6,15 @@ import Contact from "@/models/Contact";
 export const runtime = "nodejs";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
+  const { id } = await params;
   try {
-    if (!Types.ObjectId.isValid(params.id)) {
+    if (!Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: "Invalid message id." },
         { status: 400 }
@@ -22,7 +23,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
 
     await connectMongoDB();
 
-    const deletedMessage = await Contact.findByIdAndDelete(params.id);
+    const deletedMessage = await Contact.findByIdAndDelete(id);
 
     if (!deletedMessage) {
       return NextResponse.json(

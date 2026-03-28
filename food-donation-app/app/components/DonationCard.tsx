@@ -2,10 +2,9 @@
 
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import type { Donation, SearchDonation } from '../types';
+import type { Donation, SearchDonation } from '../Donation/types';
 import {
   formatAvailableQuantityDisplay,
-  formatDistance,
   getCompactExpiryLabel,
   getDonationAddress,
   getDonationLocationLabel,
@@ -14,11 +13,11 @@ import {
   getExpiryMeta,
   getPhoneHref,
   normalizeText
-} from '../utils';
+} from '../Donation/utils';
 
-// Dynamic import LocationMapPreview to prevent SSR execution
+// Dynamic import for SSR safety
 const LocationMapPreview = dynamic(
-  () => import('../../components/LocationMapPreview'),
+  () => import('../components/LocationMapPreview').then((mod) => ({ default: mod.default })),
   { ssr: false }
 );
 
@@ -39,8 +38,8 @@ export default function DonationCard({
   const expiryLabel = getCompactExpiryLabel(donation.availableUntil);
   const phoneHref = getPhoneHref(donation.contactNumber);
   const donorName =
-    donation.donorId && typeof donation.donorId === 'object' && donation.donorId.name
-      ? normalizeText(donation.donorId.name)
+    'name' in (donation.donorId as any) 
+      ? normalizeText((donation.donorId as any).name)
       : '';
   const donationStatus = getDonationStatus(donation);
   const locationLabel = getDonationLocationLabel(donation);
@@ -124,4 +123,3 @@ export default function DonationCard({
     </article>
   );
 }
-

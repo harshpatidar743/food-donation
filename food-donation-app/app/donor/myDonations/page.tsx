@@ -1,18 +1,22 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "./myDonations.css";
 import { getStoredAuthToken, getStoredAuthUser } from "../../lib/auth";
 import { Donation } from "../../Donation/types";
+import dynamic from 'next/dynamic';
+const LocationMapPreview = dynamic(() => import('@/app/components/LocationMapPreview'), { ssr: false });
 import {
-  formatRemainingQuantityDisplay,
+  formatAvailableQuantityDisplay,
+  getCompactExpiryLabel,
   getDonationAddress,
+  getDonationLocationLabel,
   getDonationStatus,
   getDonationTitle,
-  getExpiryMeta,
-  getQuantityProgress
+  getExpiryMeta
 } from "../../Donation/utils";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -27,13 +31,15 @@ export default function MyDonations() {
   const [updatingDonationId, setUpdatingDonationId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const authUser = getStoredAuthUser();
     const donorId = authUser?.donorId;
     const token = getStoredAuthToken();
 
     if (!donorId || !token) {
       router.push("/donor/login");
-      return undefined;
+      return;
     }
 
     const fetchDonations = async (showLoading = false) => {
@@ -79,11 +85,14 @@ export default function MyDonations() {
       return;
     }
 
+    const token = getStoredAuthToken();
+    if (!token) return;
+
     try {
       const response = await fetch(`${API}/donation/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${getStoredAuthToken()}`
+          Authorization: `Bearer ${token}`
         }
       });
 
@@ -108,6 +117,9 @@ export default function MyDonations() {
       return;
     }
 
+    const token = getStoredAuthToken();
+    if (!token) return;
+
     setUpdatingDonationId(donationId);
 
     try {
@@ -115,7 +127,7 @@ export default function MyDonations() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getStoredAuthToken()}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ takenQuantity })
       });
@@ -143,13 +155,16 @@ export default function MyDonations() {
   };
 
   const markCompleted = async (donationId: string) => {
+    const token = getStoredAuthToken();
+    if (!token) return;
+
     setUpdatingDonationId(donationId);
 
     try {
       const response = await fetch(`${API}/donation/${donationId}/complete`, {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${getStoredAuthToken()}`
+          Authorization: `Bearer ${token}`
         }
       });
 
@@ -218,103 +233,117 @@ export default function MyDonations() {
               const donationId = donation._id;
               const donationStatus = getDonationStatus(donation);
               const expiryMeta = getExpiryMeta(donation.availableUntil);
-              const progressPercent = getQuantityProgress(donation);
+              const expiryLabel = getCompactExpiryLabel(donation.availableUntil);
+              const locationLabel = getDonationLocationLabel(donation);
+              const pickupAddress = getDonationAddress(donation);
+              const showPickupAddress =
+                pickupAddress &&
+                pickupAddress.toLowerCase() !== locationLabel.toLowerCase();
               const controlsDisabled = donationStatus !== "active" || updatingDonationId === donationId;
 
               return (
                 <div key={donationId} className={`donation-card donation-card--${donationStatus}`}>
-                  <div className="donation-card-header">
-                    <div className="donation-info">
-                      <h3>{getDonationTitle(donation)}</h3>
-                      <p className="donation-meta">{formatRemainingQuantityDisplay(donation)}</p>
-                    </div>
-                    <span className={`status-pill status-pill--${donationStatus}`}>
-                      {donationStatus}
-                    </span>
-                  </div>
+                  <div className="donation-card-main">
+                    {donation.foodImage?.dataUrl ? (
+                      <div className="donation-card-image-wrap">
+                        <Image
+                          src={donation.foodImage.dataUrl}
+                          alt={getDonationTitle(donation)}
+                          className="donation-card-image"
+                          width={80}
+                          height={80}
+                          sizes="80px"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="donation-card-image-wrap donation-card-image-wrap--placeholder">
+                        <span>No image</span>
+                      </div>
+                    )}
 
-                  <div className="progress-block">
-                    <div className="progress-copy">
-                      <span>Remaining stock</span>
-                      <span>{progressPercent}%</span>
-                    </div>
-                    <div className="progress-track" aria-hidden="true">
-                      <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
-                    </div>
-                  </div>
+                    <div className="donation-summary">
+                      <div className="donation-card-header">
+                        <div className="donation-info">
+                          <h3>{getDonationTitle(donation)}</h3>
+                        </div>
+                        <span className={`status-pill status-pill--${donationStatus}`}>
+                          {donationStatus}
+                        </span>
+                      </div>
 
-                  <div className="donation-details">
-                    <div className="donation-detail">
-                      <span className="label">Category</span>
-                      <span className="value">{donation.foodCategory || "Not specified"}</span>
-                    </div>
-                    <div className="donation-detail">
-                      <span className="label">Total Quantity</span>
-                      <span className="value">{donation.totalQuantity ?? donation.quantity}</span>
-                    </div>
-                    <div className="donation-detail">
-                      <span className="label">Remaining Quantity</span>
-                      <span className="value">{donation.remainingQuantity ?? donation.quantity}</span>
-                    </div>
-                    <div className="donation-detail">
-                      <span className="label">Pickup Address</span>
-                      <span className="value">{getDonationAddress(donation)}</span>
-                    </div>
-                    <div className="donation-detail">
-                      <span className="label">Expiry</span>
-                      <span className={`value expiry-value expiry-value--${expiryMeta.tone}`}>
-                        {expiryMeta.label}
-                      </span>
-                    </div>
-                    <div className="donation-detail">
-                      <span className="label">Posted On</span>
-                      <span className="value">
-                        {new Date(donation.createdAt || "").toLocaleDateString()}
-                      </span>
+                      <p className="donation-location">{locationLabel}</p>
+                      {showPickupAddress && (
+                        <p className="donation-location-detail">Pickup: {pickupAddress}</p>
+                      )}
+
+                      <div className="donation-meta-row">
+                        <span>{formatAvailableQuantityDisplay(donation)}</span>
+                        <span className={`expiry-value expiry-value--${expiryMeta.tone}`}>
+                          {expiryLabel}
+                        </span>
+                      </div>
+
+                      <div className="donation-submeta-row">
+                        <span>{donation.foodCategory || "Food"}</span>
+                        <span>{new Date(donation.createdAt || "").toLocaleDateString()}</span>
+                      </div>
+
+                      <div className="donation-map-row">
+                        <LocationMapPreview
+                          lat={donation.lat}
+                          lng={donation.lng}
+                          title={getDonationTitle(donation)}
+                          buttonClassName="map-button"
+                          disabledButtonClassName="map-button map-button--disabled"
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="quantity-controls">
                     <div className="quantity-input-group">
                       <label htmlFor={`taken-${donationId}`}>Food Taken</label>
-                      <input
-                        id={`taken-${donationId}`}
-                        type="number"
-                        min="1"
-                        placeholder="2"
-                        value={takenQuantities[donationId] || ""}
-                        disabled={controlsDisabled}
-                        onChange={(event) =>
-                          setTakenQuantities((currentValues) => ({
-                            ...currentValues,
-                            [donationId]: event.target.value
-                          }))
-                        }
-                      />
-                    </div>
+                      <div className="quantity-input-group">
+                        <input
+                          id={`taken-${donationId}`}
+                          type="number"
+                          min="1"
+                          placeholder="2"
+                          value={takenQuantities[donationId] || ""}
+                          disabled={controlsDisabled}
+                          onChange={(event) =>
+                            setTakenQuantities((currentValues) => ({
+                              ...currentValues,
+                              [donationId]: event.target.value
+                            }))
+                          }
+                        />
+                      </div>
 
-                    <div className="control-buttons">
-                      <button
-                        className="update-button"
-                        disabled={controlsDisabled}
-                        onClick={() => reduceQuantity(donationId)}
-                      >
-                        Reduce Quantity
-                      </button>
-                      <button
-                        className="complete-button"
-                        disabled={controlsDisabled}
-                        onClick={() => markCompleted(donationId)}
-                      >
-                        Mark as Completed
-                      </button>
-                      <button
-                        className="delete-button"
-                        disabled={updatingDonationId === donationId}
-                        onClick={() => deleteDonation(donationId)}
-                      >
-                        Delete
-                      </button>
+                      <div className="control-buttons">
+                        <button
+                          className="update-button"
+                          disabled={controlsDisabled}
+                          onClick={() => reduceQuantity(donationId)}
+                        >
+                          Reduce Quantity
+                        </button>
+                        <button
+                          className="complete-button"
+                          disabled={controlsDisabled}
+                          onClick={() => markCompleted(donationId)}
+                        >
+                          Mark as Completed
+                        </button>
+                        <button
+                          className="delete-button"
+                          disabled={updatingDonationId === donationId}
+                          onClick={() => deleteDonation(donationId)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -326,3 +355,4 @@ export default function MyDonations() {
     </div>
   );
 }
+

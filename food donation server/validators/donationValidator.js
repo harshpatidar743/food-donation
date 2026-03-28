@@ -35,6 +35,12 @@ const createDonationSchema = Joi.object({
     "string.empty": "Full address is required",
     "string.min": "Full address must be at least 10 characters"
   }),
+  location: Joi.string().trim().allow(""),
+  lat: Joi.number().min(-90).max(90),
+  lng: Joi.number().min(-180).max(180),
+  area: Joi.string().trim().allow(""),
+  city: Joi.string().trim().allow(""),
+  state: Joi.string().trim().allow(""),
   pincode: Joi.string().trim().allow("").pattern(pincodePattern).messages({
     "string.pattern.base": "Pincode must contain 4 to 10 digits"
   }),
@@ -54,6 +60,12 @@ const createDonationSchema = Joi.object({
   }).optional()
 })
   .custom((value, helpers) => {
+    if ((value.lat === undefined) !== (value.lng === undefined)) {
+      return helpers.error("any.invalid", {
+        message: "Latitude and longitude must be provided together"
+      });
+    }
+
     if (new Date(value.availableUntil) <= new Date(value.foodPreparedTime)) {
       return helpers.error("any.invalid", {
         message: "Available until / expiry time must be after food prepared time"

@@ -58,6 +58,39 @@ const normalizeText = (value) => {
     .join(" ");
 };
 
+const getUniqueLocationParts = (...values) => {
+  const seenValues = new Set();
+
+  return values.reduce((parts, value) => {
+    const cleanedValue = value?.trim();
+
+    if (!cleanedValue) {
+      return parts;
+    }
+
+    const normalizedValue = cleanedValue.toLowerCase();
+
+    if (seenValues.has(normalizedValue)) {
+      return parts;
+    }
+
+    seenValues.add(normalizedValue);
+    parts.push(cleanedValue);
+    return parts;
+  }, []);
+};
+
+const buildLocationLabel = ({ area, city, state, pincode }) => {
+  const placeLabel = getUniqueLocationParts(area, city, state).join(", ");
+  const trimmedPincode = pincode?.trim() || "";
+
+  if (placeLabel && trimmedPincode) {
+    return `${placeLabel} - ${trimmedPincode}`;
+  }
+
+  return placeLabel || trimmedPincode;
+};
+
 const syncDonationStatuses = async () => {
   const now = new Date();
 
@@ -115,18 +148,30 @@ const activeDonationFilter = () => ({
 
 exports.createDonation = async (data) => {
   const normalizedQuantity = Number(data.quantity);
+  const area = normalizeText(data.area);
+  const city = normalizeText(data.city);
+  const state = normalizeText(data.state);
+  const pincode = data.pincode?.trim() || undefined;
+  const locationLabel = normalizeText(
+    data.location || buildLocationLabel({ area, city, state, pincode })
+  );
   const normalizedDonation = {
     ...data,
     foodName: normalizeText(data.foodName),
     foodType: normalizeText(data.foodName),
     fullAddress: normalizeText(data.fullAddress),
-    location: normalizeText(data.fullAddress),
+    location: locationLabel || normalizeText(data.fullAddress),
+    lat: typeof data.lat === "number" ? data.lat : undefined,
+    lng: typeof data.lng === "number" ? data.lng : undefined,
+    area: area || undefined,
+    city: city || undefined,
+    state: state || undefined,
     quantity: normalizedQuantity,
     totalQuantity: normalizedQuantity,
     remainingQuantity: normalizedQuantity,
     quantityUnit: data.quantityUnit || "plates",
     status: "active",
-    pincode: data.pincode?.trim() || undefined,
+    pincode,
     contactNumber: data.contactNumber?.trim(),
     additionalNotes: data.additionalNotes?.trim() || undefined,
     foodImage: data.foodImage?.dataUrl ? data.foodImage : undefined
@@ -168,6 +213,9 @@ exports.getDonationsByLocation = async (location) => {
         $or: [
           { fullAddress: { $regex: searchPattern } },
           { location: { $regex: searchPattern } },
+          { area: { $regex: searchPattern } },
+          { city: { $regex: searchPattern } },
+          { state: { $regex: searchPattern } },
           { pincode: { $regex: searchPattern } }
         ]
       }

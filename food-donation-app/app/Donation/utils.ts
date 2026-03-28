@@ -1,257 +1,161 @@
-import { Donation, DonationStatus, QuantityUnit } from "./types";
+import type { Donation, SearchDonation } from './types';
+import type { RouteInfo } from './types';
 
-const shortDateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
-  day: "numeric",
-  month: "short",
-  hour: "numeric",
-  minute: "2-digit"
-});
-
-const timeFormatter = new Intl.DateTimeFormat("en-IN", {
-  hour: "numeric",
-  minute: "2-digit"
-});
-
-const titleCaseSmallWords = new Set([
-  "a",
-  "an",
-  "and",
-  "at",
-  "by",
-  "for",
-  "in",
-  "of",
-  "on",
-  "or",
-  "the",
-  "to",
-  "with"
-]);
-
-const isSameDay = (left: Date, right: Date) =>
-  left.getFullYear() === right.getFullYear() &&
-  left.getMonth() === right.getMonth() &&
-  left.getDate() === right.getDate();
-
-const formatWord = (word: string, index: number) => {
-  if (!word) {
-    return word;
-  }
-
-  if (/^[0-9]+$/.test(word)) {
-    return word;
-  }
-
-  if (/^[A-Z0-9]{2,4}$/.test(word)) {
-    return word;
-  }
-
-  const lowerCasedWord = word.toLowerCase();
-
-  if (index > 0 && titleCaseSmallWords.has(lowerCasedWord)) {
-    return lowerCasedWord;
-  }
-
-  return lowerCasedWord.charAt(0).toUpperCase() + lowerCasedWord.slice(1);
+export const isDonationAvailable = (donation: Donation): boolean => {
+  const now = new Date();
+  const availableUntil = new Date(donation.availableUntil);
+  return donation.status === 'active' && availableUntil > now && donation.remainingQuantity > 0;
 };
 
-const normalizeChunk = (chunk: string, index: number) =>
-  chunk
-    .split("-")
-    .map((piece, pieceIndex) => formatWord(piece, index + pieceIndex))
-    .join("-");
+export const normalizeText = (value: string): string => value.trim();
 
-export const normalizeText = (value?: string) => {
-  if (!value) {
-    return "";
-  }
-
-  return value
-    .trim()
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .map((chunk, index) => normalizeChunk(chunk, index))
-    .join(" ");
+export const getExpiryMeta = (availableUntil: string) => {
+  const expiry = new Date(availableUntil);
+  const now = new Date();
+  const diffMs = expiry.getTime() - now.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const tone = diffMin < 30 ? 'urgent' : diffMin < 120 ? 'warning' : 'normal';
+  return { diffMin, tone };
 };
 
-export const getDonationTitle = (donation: Donation) =>
-  normalizeText(donation.foodName || donation.foodType || "Food donation");
-
-export const getDonationAddress = (donation: Donation) =>
-  normalizeText(donation.fullAddress || donation.location || "Address not available");
-
-export const getPhoneHref = (phoneNumber?: string) => {
-  if (!phoneNumber) {
-    return "";
-  }
-
-  const sanitizedPhone = phoneNumber.replace(/(?!^\+)[^\d]/g, "");
-
-  return sanitizedPhone ? `tel:${sanitizedPhone}` : "";
+export const getCompactExpiryLabel = (availableUntil: string): string => {
+  const meta = getExpiryMeta(availableUntil);
+  if (meta.diffMin < 60) return `${meta.diffMin}m`;
+  const hours = Math.floor(meta.diffMin / 60);
+  return `${hours}h`;
 };
 
-// export const formatQuantityDisplay = (
-//   quantity: number,
-//   quantityUnit: QuantityUnit | undefined = "plates"
-// ) => {
-//   if (quantityUnit === "people") {
-//     return `Available: ${quantity} ${quantity === 1 ? "person" : "people"}`;
-//   }
-
-//   return `Quantity: ${quantity} ${quantity === 1 ? "plate" : "plates"}`;
-// };
-
-export const getRemainingQuantity = (donation: Donation) =>
-  typeof donation.remainingQuantity === "number"
-    ? donation.remainingQuantity
-    : donation.quantity;
-
-export const getTotalQuantity = (donation: Donation) =>
-  typeof donation.totalQuantity === "number" ? donation.totalQuantity : donation.quantity;
-
-export const getDonationStatus = (donation: Donation): DonationStatus => {
-  const remainingQuantity = getRemainingQuantity(donation);
-
-  if (remainingQuantity <= 0) {
-    return "completed";
+export const formatAvailableQuantityDisplay = (donation: Donation): string => {
+  if (donation.remainingQuantity >= donation.totalQuantity) {
+    return `${donation.totalQuantity} ${donation.quantityUnit}`;
   }
-
-  if (!isDonationActive(donation.availableUntil)) {
-    return "expired";
-  }
-
-  return donation.status === "completed" || donation.status === "expired"
-    ? donation.status
-    : "active";
+  return `${donation.remainingQuantity}/${donation.totalQuantity} ${donation.quantityUnit}`;
 };
 
-export const isDonationAvailable = (donation: Donation) =>
-  getDonationStatus(donation) === "active" && getRemainingQuantity(donation) > 0;
+export const getDonationTitle = (donation: Donation): string => `${donation.foodName} - ${donation.foodCategory}`;
 
-export const formatRemainingQuantityDisplay = (donation: Donation) => {
-  const remainingQuantity = getRemainingQuantity(donation);
-  const totalQuantity = getTotalQuantity(donation);
-  const quantityUnit = donation.quantityUnit || "plates";
-
-  if (quantityUnit === "people") {
-    return `Remaining: ${remainingQuantity} / ${totalQuantity} people`;
-  }
-
-  return `Remaining: ${remainingQuantity} / ${totalQuantity} plates`;
+export const getDonationStatus = (donation: Donation): string => {
+  const now = new Date();
+  const availableUntil = new Date(donation.availableUntil);
+  if (donation.remainingQuantity <= 0) return 'completed';
+  if (availableUntil < now) return 'expired';
+  return 'active';
 };
 
-export const getQuantityProgress = (donation: Donation) => {
-  const totalQuantity = getTotalQuantity(donation);
-  const remainingQuantity = getRemainingQuantity(donation);
+export const getPhoneHref = (phone: string): string => `tel:${phone.replace(/[^\\d+]/g, '')}`;
 
-  if (totalQuantity <= 0) {
+export const getDonationLocationLabel = (donation: Donation): string => donation.location || donation.city || 'Location unavailable';
+
+export const getDonationAddress = (donation: Donation): string => donation.fullAddress;
+
+export function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180 ) * Math.cos(lat2 * Math.PI / 180 ) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+export function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)}m`;
+  return `${(meters / 1000).toFixed(1)}km`;
+}
+
+const ROUTE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedRouteInfo = {
+  expiresAt: number;
+  value: RouteInfo;
+};
+
+const routeInfoCache = new Map<string, CachedRouteInfo>();
+const pendingRouteInfoRequests = new Map<string, Promise<RouteInfo>>();
+
+const buildRouteCacheKey = (lat1: number, lng1: number, lat2: number, lng2: number) =>
+  [lat1, lng1, lat2, lng2].map((value) => value.toFixed(6)).join(':');
+
+const toRoundedMinutes = (seconds: number) => {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
     return 0;
   }
 
-  return Math.max(0, Math.min(100, Math.round((remainingQuantity / totalQuantity) * 100)));
+  return Math.max(1, Math.round(seconds / 60));
 };
 
-export const formatPostedAgo = (value?: string) => {
-  if (!value) {
-    return "Posted recently";
-  }
-
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Posted recently";
-  }
-
-  const diffInMs = Date.now() - parsedDate.getTime();
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-
-  if (diffInMinutes < 1) {
-    return "Posted just now";
-  }
-
-  if (diffInMinutes < 60) {
-    return `Posted ${diffInMinutes} min ago`;
-  }
-
-  if (diffInHours < 24) {
-    return `Posted ${diffInHours} hr ago`;
-  }
-
-  if (diffInDays < 7) {
-    return `Posted ${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-  }
-
-  return `Posted ${shortDateTimeFormatter.format(parsedDate)}`;
-};
-
-export const isDonationActive = (value?: string) => {
-  if (!value) {
-    return true;
-  }
-
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return false;
-  }
-
-  return parsedDate.getTime() > Date.now();
-};
-
-export const getExpiryMeta = (value?: string) => {
-  if (!value) {
-    return {
-      label: "Expiry not provided",
-      tone: "neutral" as const,
-      status: "Available" as const
-    };
-  }
-
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return {
-      label: "Expiry not provided",
-      tone: "neutral" as const,
-      status: "Available" as const
-    };
-  }
-
-  const now = new Date();
-  const diffInMs = parsedDate.getTime() - now.getTime();
-
-  if (diffInMs <= 0) {
-    return {
-      label: `Expired ${shortDateTimeFormatter.format(parsedDate)}`,
-      tone: "danger" as const,
-      status: "Expired" as const
-    };
-  }
-
-  if (isSameDay(parsedDate, now)) {
-    return {
-      label: `Expires Today, ${timeFormatter.format(parsedDate)}`,
-      tone: diffInMs <= 2 * 60 * 60 * 1000 ? "danger" : "warning",
-      status: "Available" as const
-    };
-  }
-
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  if (isSameDay(parsedDate, tomorrow)) {
-    return {
-      label: `Expires Tomorrow, ${timeFormatter.format(parsedDate)}`,
-      tone: "warning" as const,
-      status: "Available" as const
-    };
-  }
+const buildFallbackRouteInfo = (
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): RouteInfo => {
+  const straightDistanceKm = getDistance(lat1, lng1, lat2, lng2);
+  const drivingDistanceKm = straightDistanceKm * 1.15;
+  const walkingDistanceKm = straightDistanceKm * 1.05;
+  const drivingSeconds = (drivingDistanceKm / 32) * 3600;
+  const walkingSeconds = (walkingDistanceKm / 4.8) * 3600;
 
   return {
-    label: shortDateTimeFormatter.format(parsedDate),
-    tone: "neutral" as const,
-    status: "Available" as const
+    routeTimeMin: toRoundedMinutes(drivingSeconds),
+    routeDistanceKm: Number(drivingDistanceKm.toFixed(2)),
+    walkingTimeMin: toRoundedMinutes(walkingSeconds),
+    walkingDistanceKm: Number(walkingDistanceKm.toFixed(2)),
+    error: 'Route service unavailable, using estimated travel info'
   };
 };
+
+export async function getFullRouteInfoAsync(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): Promise<RouteInfo> {
+  const cacheKey = buildRouteCacheKey(lat1, lng1, lat2, lng2);
+  const now = Date.now();
+  const cachedRouteInfo = routeInfoCache.get(cacheKey);
+
+  if (cachedRouteInfo && cachedRouteInfo.expiresAt > now) {
+    return cachedRouteInfo.value;
+  }
+
+  const pendingRouteInfo = pendingRouteInfoRequests.get(cacheKey);
+  if (pendingRouteInfo) {
+    return pendingRouteInfo;
+  }
+
+  const routeInfoPromise = (async () => {
+    try {
+      const response = await fetch(
+        `/api/location/route?originLat=${lat1}&originLng=${lng1}&destinationLat=${lat2}&destinationLng=${lng2}`,
+        {
+          cache: 'no-store'
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Route API request failed');
+      }
+
+      const routeInfo = (await response.json()) as RouteInfo;
+      routeInfoCache.set(cacheKey, {
+        expiresAt: Date.now() + ROUTE_CACHE_TTL_MS,
+        value: routeInfo
+      });
+      return routeInfo;
+    } catch {
+      const fallbackRouteInfo = buildFallbackRouteInfo(lat1, lng1, lat2, lng2);
+      routeInfoCache.set(cacheKey, {
+        expiresAt: Date.now() + ROUTE_CACHE_TTL_MS,
+        value: fallbackRouteInfo
+      });
+      return fallbackRouteInfo;
+    } finally {
+      pendingRouteInfoRequests.delete(cacheKey);
+    }
+  })();
+
+  pendingRouteInfoRequests.set(cacheKey, routeInfoPromise);
+  return routeInfoPromise;
+}
