@@ -1,52 +1,60 @@
 import { MetadataRoute } from "next";
+import { fetchActiveDonations, buildDonationDetailUrl, SITE_URL } from "@/app/lib/publicDonations";
 
-const baseUrl = "https://foodmatch.in";
-
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date("2026-03-28");
-
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/`,
+      url: `${SITE_URL}/`,
       lastModified,
       changeFrequency: "weekly",
       priority: 1
     },
     {
-      url: `${baseUrl}/Donation`,
+      url: `${SITE_URL}/Donation`,
       lastModified,
       changeFrequency: "daily",
       priority: 0.9
     },
     {
-      url: `${baseUrl}/GetFood`,
+      url: `${SITE_URL}/GetFood`,
       lastModified,
       changeFrequency: "daily",
       priority: 0.9
     },
     {
-      url: `${baseUrl}/AboutUs`,
+      url: `${SITE_URL}/AboutUs`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.6
     },
     {
-      url: `${baseUrl}/ContactUs`,
+      url: `${SITE_URL}/ContactUs`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.6
     },
     {
-      url: `${baseUrl}/donor/login`,
+      url: `${SITE_URL}/donor/login`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.4
     },
     {
-      url: `${baseUrl}/donor/register`,
+      url: `${SITE_URL}/donor/register`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.5
     }
   ];
+
+  const activeDonations = await fetchActiveDonations();
+  const donationRoutes: MetadataRoute.Sitemap = activeDonations.map((donation) => ({
+    url: buildDonationDetailUrl(donation._id),
+    lastModified: new Date(donation.updatedAt || donation.createdAt || lastModified),
+    changeFrequency: "hourly",
+    priority: 0.8
+  }));
+
+  return [...staticRoutes, ...donationRoutes];
 }

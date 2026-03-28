@@ -1,4 +1,5 @@
 const Donation = require("../models/donation");
+const { Types } = require("mongoose");
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const titleCaseSmallWords = new Set([
@@ -192,6 +193,29 @@ exports.getAllDonations = async () => {
   return await Donation.find(activeDonationFilter())
     .populate("donorId", "name")
     .sort({ availableUntil: 1, createdAt: -1 });
+};
+
+exports.getPublicDonationById = async (id) => {
+  await syncDonationStatuses();
+
+  if (!Types.ObjectId.isValid(id)) {
+    const error = new Error("Donation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const donation = await Donation.findOne({
+    _id: id,
+    ...activeDonationFilter()
+  }).populate("donorId", "name");
+
+  if (!donation) {
+    const error = new Error("Donation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return donation;
 };
 
 exports.getDonationsByLocation = async (location) => {

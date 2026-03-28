@@ -1,8 +1,10 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { Donation, SearchDonation } from '../Donation/types';
+import ShareDonationButton from '@/app/components/ShareDonationButton';
 import {
   formatAvailableQuantityDisplay,
   getCompactExpiryLabel,
@@ -14,6 +16,7 @@ import {
   getPhoneHref,
   normalizeText
 } from '../Donation/utils';
+import { buildDonationDetailPath } from '@/app/lib/publicDonations';
 
 // Dynamic import for SSR safety
 const LocationMapPreview = dynamic(
@@ -47,6 +50,7 @@ export default function DonationCard({
   const showPickupAddress =
     pickupAddress &&
     pickupAddress.toLowerCase() !== locationLabel.toLowerCase();
+  const detailPath = buildDonationDetailPath(donation._id);
 
   return (
     <article className={`donation-item donation-item--${expiryMeta.tone}`}>
@@ -109,6 +113,17 @@ export default function DonationCard({
               No contact
             </span>
           )}
+          <Link
+            className="call-button call-button--compact call-button--secondary"
+            href={detailPath}
+          >
+            View Details
+          </Link>
+          <ShareDonationButton
+            pathOrUrl={detailPath}
+            title={getDonationTitle(donation)}
+            className="call-button call-button--compact call-button--secondary"
+          />
           <LocationMapPreview
             lat={donation.lat}
             lng={donation.lng}

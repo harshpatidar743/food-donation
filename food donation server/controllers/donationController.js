@@ -21,6 +21,15 @@ exports.getAllDonations = async (req, res, next) => {
   }
 };
 
+exports.getPublicDonationById = async (req, res, next) => {
+  try {
+    const donation = await donationService.getPublicDonationById(req.params.id);
+    res.json(donation);
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getDonationsByLocation = async (req, res, next) => {
   try {
     const result = await donationService.getDonationsByLocation(req.query.location);

@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   createDonation,
   getAllDonations,
+  getPublicDonationById,
   getDonationsByLocation,
   getMyDonations,
   deleteDonation,
@@ -20,6 +21,7 @@ const {
 
 // Public routes
 router.get("/donations", getAllDonations);
+router.get("/donation/:id", getPublicDonationById);
 router.get("/donationsbylocation", getDonationsByLocation);
 
 // Protected routes
