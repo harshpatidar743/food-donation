@@ -14,6 +14,10 @@ const app = express();
 app.use(express.json({ limit: "5mb" }));
 app.use(cors());
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // Connect to MongoDB
 connectDB();
 

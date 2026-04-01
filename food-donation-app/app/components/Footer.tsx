@@ -116,8 +116,8 @@ export default function Footer() {
             <h2 className="site-footer__heading" id="footer-contact">Contact</h2>
             <ul className="site-footer__contact-list">
               <li>
-                <a href="mailto:support@fooddonation.org" className="site-footer__link">
-                  support@fooddonation.org
+                <a href="mailto:foodmatch.in@gmail.com" className="site-footer__link">
+                  foodmatch.in@gmail.com
                 </a>
               </li>
               <li className="site-footer__meta">India</li>

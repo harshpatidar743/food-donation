@@ -69,7 +69,7 @@ exports.registerUser = async (data) => {
     throw error;
   }
 
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
   const token = generateToken();
   const assignedRole = getRegistrationRole(accountType || role || userType);
@@ -134,22 +134,22 @@ exports.loginUser = async (data) => {
     throw error;
   }
 
-  const donor = await Donor.findOne({ email: normalizedEmail });
+  const donor = await Donor.findOne(
+    { email: normalizedEmail },
+    "password name email role isVerified"
+  ).lean();
+
   if (!donor) {
-    const error = new Error('Donor not found');
-    error.statusCode = 400;
+    const error = new Error('Invalid credentials');
+    error.statusCode = 401;
     throw error;
   }
 
-  const storedPassword = donor.password;
-  const isLegacyPassword = !isBcryptHash(storedPassword);
-  const isMatch = isLegacyPassword
-    ? password === storedPassword
-    : await bcrypt.compare(password, storedPassword);
+  const isMatch = await bcrypt.compare(password, donor.password);
 
   if (!isMatch) {
-    const error = new Error('Invalid password');
-    error.statusCode = 400;
+    const error = new Error('Invalid credentials');
+    error.statusCode = 401;
     throw error;
   }
 
@@ -159,32 +159,13 @@ exports.loginUser = async (data) => {
     throw error;
   }
 
-  const role = getStoredRole(donor);
-  let shouldSave = false;
-
-  if (donor.role !== role) {
-    donor.role = role;
-    shouldSave = true;
-  }
-
-  // Migrate older donor records that were stored with plain-text passwords.
-  if (isLegacyPassword) {
-    const salt = await bcrypt.genSalt(12);
-    donor.password = await bcrypt.hash(password, salt);
-    shouldSave = true;
-  }
-
-  if (shouldSave) {
-    await donor.save();
-  }
-
   const token = generateJWT(donor._id);
 
   return {
     message: 'Login successful',
     donorId: donor._id,
     name: donor.name,
-    role,
+    role: donor.role,
     token
   };
 };
