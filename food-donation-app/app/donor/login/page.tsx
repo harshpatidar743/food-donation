@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./login.module.css";
@@ -15,10 +15,12 @@ type LoginResponse = {
   token?: string;
   message?: string;
   error?: string;
+  retryAfterSeconds?: number | null;
 };
 
 export default function Login() {
   const router = useRouter();
+  const inFlightRef = useRef(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,12 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
     setError("");
     setLoading(true);
 
@@ -37,7 +45,7 @@ export default function Login() {
         body: JSON.stringify({ email, password })
       });
 
-      const data: LoginResponse = await res.json();
+      const data: LoginResponse = await res.json().catch(() => ({}));
 
       if (res.ok && data.donorId) {
         const role = data.role || "user";
@@ -51,11 +59,17 @@ export default function Login() {
 
         router.push(role === "admin" ? "/dashboard/messages" : "/donor/dashboard");
       } else {
-        setError(data.error || data.message || "Login failed. Please try again.");
+        const errorMessage =
+          res.status === 429
+            ? data.message || "Too many login attempts. Please wait a few minutes and try again."
+            : data.error || data.message || "Login failed. Please try again.";
+
+        setError(errorMessage);
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   };
