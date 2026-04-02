@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiDelete, apiGet } from "@/app/lib/api";
 import "./style.css";
 
 type ContactMessage = {
@@ -13,13 +14,18 @@ type ContactMessage = {
 
 type MessagesResponse = {
   success: boolean;
-  messages?: ContactMessage[];
+  data?: ContactMessage[];
   error?: string;
+  message?: string;
 };
 
 type DeleteResponse = {
   success: boolean;
+  data?: {
+    id: string;
+  };
   error?: string;
+  message?: string;
 };
 
 const formatDate = (value: string) => {
@@ -46,16 +52,15 @@ export default function DashboardMessagesPage() {
       setIsLoading(true);
       setError("");
 
-      const response = await fetch("/api/contact/get", {
+      const data = await apiGet<MessagesResponse>("/api/messages", {
         cache: "no-store",
       });
-      const data: MessagesResponse = await response.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to fetch messages.");
+      if (!data.success) {
+        throw new Error(data.error || data.message || "Failed to fetch messages.");
       }
 
-      setMessages(data.messages || []);
+      setMessages(data.data || []);
     } catch (fetchError) {
       setError(
         fetchError instanceof Error
@@ -79,13 +84,10 @@ export default function DashboardMessagesPage() {
     try {
       setDeletingId(id);
 
-      const response = await fetch(`/api/contact/delete/${id}`, {
-        method: "DELETE",
-      });
-      const data: DeleteResponse = await response.json();
+      const data = await apiDelete<DeleteResponse>(`/api/messages/${id}`);
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to delete message.");
+      if (!data.success) {
+        throw new Error(data.error || data.message || "Failed to delete message.");
       }
 
       setMessages((currentMessages) =>

@@ -4,8 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { jwtSecret } = require('../config/env');
 
-const ROLE_MAP = {
-  admin: 'admin',
+const ACCOUNT_TYPE_MAP = {
   individual: 'individual',
   organization: 'organization',
   ngo: 'organization',
@@ -13,12 +12,16 @@ const ROLE_MAP = {
   restaurant: 'business/restaurant',
   'business/restaurant': 'business/restaurant'
 };
+const ACCESS_ROLE_MAP = {
+  admin: 'admin',
+  user: 'user'
+};
 
 const normalizeText = (value) => typeof value === 'string' ? value.trim() : '';
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
-const normalizeRole = (value) => ROLE_MAP[normalizeText(value).toLowerCase()];
-const getRegistrationRole = (value) => normalizeRole(value) || 'individual';
-const getStoredRole = (donor) => normalizeRole(donor.role) || normalizeRole(donor.userType) || 'individual';
+const normalizeAccountType = (value) => ACCOUNT_TYPE_MAP[normalizeText(value).toLowerCase()];
+const normalizeAccessRole = (value) => ACCESS_ROLE_MAP[normalizeText(value).toLowerCase()] || 'user';
+const getRegistrationAccountType = (value) => normalizeAccountType(value) || 'individual';
 const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
 const assignIfPresent = (target, key, value) => {
   const normalizedValue = normalizeText(value);
@@ -29,7 +32,15 @@ const assignIfPresent = (target, key, value) => {
 };
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
-const generateJWT = (donorId) => jwt.sign({ id: donorId }, jwtSecret, { expiresIn: '30d' });
+const generateJWT = (donor) =>
+  jwt.sign(
+    {
+      id: donor._id,
+      role: normalizeAccessRole(donor.role)
+    },
+    jwtSecret,
+    { expiresIn: '30d' }
+  );
 
 exports.registerUser = async (data) => {
   const {
@@ -72,23 +83,23 @@ exports.registerUser = async (data) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
   const token = generateToken();
-  const assignedRole = getRegistrationRole(accountType || role || userType);
+  const assignedUserType = getRegistrationAccountType(accountType || userType || role);
   const donorData = {
     name: normalizedName,
     email: normalizedEmail,
     password: hashedPassword,
     phone: normalizedPhone,
-    userType: assignedRole,
-    role: assignedRole,
+    userType: assignedUserType,
+    role: 'user',
     isVerified: true,
     verificationToken: token
   };
 
-  if (assignedRole === 'individual') {
+  if (assignedUserType === 'individual') {
     assignIfPresent(donorData, 'address', address);
   }
 
-  if (assignedRole === 'organization') {
+  if (assignedUserType === 'organization') {
     assignIfPresent(donorData, 'city', city);
     assignIfPresent(donorData, 'organizationName', organizationName);
     assignIfPresent(donorData, 'registrationNumber', registrationNumber);
@@ -96,7 +107,7 @@ exports.registerUser = async (data) => {
     assignIfPresent(donorData, 'organizationCertificateName', organizationCertificateName);
   }
 
-  if (assignedRole === 'business/restaurant') {
+  if (assignedUserType === 'business/restaurant') {
     assignIfPresent(donorData, 'city', city);
     assignIfPresent(donorData, 'businessName', businessName);
     assignIfPresent(donorData, 'businessType', businessType);
@@ -109,7 +120,7 @@ exports.registerUser = async (data) => {
 
   await donor.save();
 
-  const jwtToken = generateJWT(donor._id);
+  const jwtToken = generateJWT(donor);
 
   return {
     message: 'Donor registered successfully',
@@ -119,7 +130,8 @@ exports.registerUser = async (data) => {
       donorId: donor._id,
       name: donor.name,
       email: donor.email,
-      role: donor.role
+      role: normalizeAccessRole(donor.role),
+      userType: donor.userType
     }
   };
 };
@@ -136,8 +148,8 @@ exports.loginUser = async (data) => {
 
   const donor = await Donor.findOne(
     { email: normalizedEmail },
-    "password name email role isVerified"
-  ).lean();
+    "password name email role userType isVerified"
+  );
 
   if (!donor) {
     const error = new Error('Invalid credentials');
@@ -159,13 +171,15 @@ exports.loginUser = async (data) => {
     throw error;
   }
 
-  const token = generateJWT(donor._id);
+  donor.role = normalizeAccessRole(donor.role);
+  const token = generateJWT(donor);
 
   return {
     message: 'Login successful',
     donorId: donor._id,
     name: donor.name,
     role: donor.role,
+    userType: donor.userType,
     token
   };
 };

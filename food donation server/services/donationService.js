@@ -1,4 +1,5 @@
 const Donation = require("../models/donation");
+const Donor = require("../models/donor");
 const { Types } = require("mongoose");
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -355,4 +356,59 @@ exports.deleteDonation = async (id, userId) => {
   await donation.deleteOne();
 
   return { message: "Donation deleted successfully" };
+};
+
+exports.getAllDonationsForAdmin = async () => {
+  await syncDonationStatuses();
+
+  return await Donation.find()
+    .populate("donorId", "name email role userType")
+    .sort({ createdAt: -1 });
+};
+
+exports.getAdminDashboardSummary = async () => {
+  await syncDonationStatuses();
+
+  const [
+    totalDonations,
+    activeDonations,
+    completedDonations,
+    expiredDonations,
+    totalUsers,
+    totalAdmins
+  ] = await Promise.all([
+    Donation.countDocuments(),
+    Donation.countDocuments({ status: "active" }),
+    Donation.countDocuments({ status: "completed" }),
+    Donation.countDocuments({ status: "expired" }),
+    Donor.countDocuments(),
+    Donor.countDocuments({ role: "admin" })
+  ]);
+
+  return {
+    donations: {
+      total: totalDonations,
+      active: activeDonations,
+      completed: completedDonations,
+      expired: expiredDonations
+    },
+    users: {
+      total: totalUsers,
+      admins: totalAdmins
+    }
+  };
+};
+
+exports.deleteDonationAsAdmin = async (id) => {
+  const donation = await Donation.findById(id);
+
+  if (!donation) {
+    const error = new Error("Donation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await donation.deleteOne();
+
+  return { message: "Donation deleted successfully by admin" };
 };

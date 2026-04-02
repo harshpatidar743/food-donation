@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "./myDonations.css";
-import { getStoredAuthToken, getStoredAuthUser } from "../../lib/auth";
+import { getStoredAuthUser } from "../../lib/auth";
+import { apiGet, apiPatch, apiDelete } from "../../lib/api";
 import { Donation } from "../../Donation/types";
 import dynamic from 'next/dynamic';
 const LocationMapPreview = dynamic(() => import('@/app/components/LocationMapPreview'), { ssr: false });
@@ -19,7 +20,7 @@ import {
   getExpiryMeta
 } from "../../Donation/utils";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 type DonationWithId = Donation & { _id: string };
 
 export default function MyDonations() {
@@ -35,12 +36,12 @@ export default function MyDonations() {
 
     const authUser = getStoredAuthUser();
     const donorId = authUser?.donorId;
-    const token = getStoredAuthToken();
 
-    if (!donorId || !token) {
+    if (!donorId) {
       router.push("/donor/login");
       return;
     }
+    // Token handled automatically by apiFetch with 401 logout
 
     const fetchDonations = async (showLoading = false) => {
       if (showLoading) {
@@ -48,21 +49,17 @@ export default function MyDonations() {
       }
 
       try {
-        const response = await fetch(`${API}/mydonations/${donorId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await apiGet(`/mydonations/${donorId}`);
         const data = await response.json();
 
-        if (response.ok) {
-          setDonations(data);
-          setError("");
-        } else {
-          setError(data.error || "Failed to load donations");
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load donations");
         }
-      } catch {
-        setError("An error occurred while loading donations");
+
+        setDonations(data);
+        setError("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred while loading donations");
       } finally {
         if (showLoading) {
           setLoading(false);
@@ -84,28 +81,21 @@ export default function MyDonations() {
     if (!confirm("Are you sure you want to delete this donation?")) {
       return;
     }
-
-    const token = getStoredAuthToken();
-    if (!token) return;
+    // Auth handled automatically by apiFetch with 401 logout
 
     try {
-      const response = await fetch(`${API}/donation/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await apiDelete(`/donation/${id}`);
 
-      if (response.ok) {
-        setDonations((currentDonations) =>
-          currentDonations.filter((donation) => donation._id !== id)
-        );
-      } else {
+      if (!response.ok) {
         const data = await response.json();
-        alert(data.error || "Failed to delete donation");
+        throw new Error(data.error || "Failed to delete donation");
       }
-    } catch {
-      alert("Failed to delete donation");
+
+      setDonations((currentDonations) =>
+        currentDonations.filter((donation) => donation._id !== id)
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete donation");
     }
   };
 
@@ -117,20 +107,12 @@ export default function MyDonations() {
       return;
     }
 
-    const token = getStoredAuthToken();
-    if (!token) return;
+    // Auth handled automatically by apiFetch with 401 logout
 
     setUpdatingDonationId(donationId);
 
     try {
-      const response = await fetch(`${API}/donation/${donationId}/reduce`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ takenQuantity })
-      });
+      const response = await apiPatch(`/donation/${donationId}/reduce`, { takenQuantity });
 
       const data = await response.json();
 
@@ -155,18 +137,12 @@ export default function MyDonations() {
   };
 
   const markCompleted = async (donationId: string) => {
-    const token = getStoredAuthToken();
-    if (!token) return;
+    // Auth handled automatically by apiFetch with 401 logout
 
     setUpdatingDonationId(donationId);
 
     try {
-      const response = await fetch(`${API}/donation/${donationId}/complete`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await apiPatch(`/donation/${donationId}/complete`);
 
       const data = await response.json();
 

@@ -12,7 +12,7 @@ const {
   markDonationCompleted
 } = require("../controllers/donationController");
 
-const { protect } = require("../middleware/authMiddleware");
+const { authenticate } = require("../middleware/auth");
 const validate = require("../middleware/validators");
 const {
   createDonationSchema,
@@ -25,16 +25,17 @@ router.get("/donation/:id", getPublicDonationById);
 router.get("/donationsbylocation", getDonationsByLocation);
 
 // Protected routes
-router.post("/donate", protect, validate(createDonationSchema), createDonation);
-router.get("/mydonations/:donorId", protect, getMyDonations);
+router.post("/donate", authenticate, validate(createDonationSchema), createDonation);
+router.get("/mydonations/:donorId", authenticate, getMyDonations);
 router.patch(
   "/donation/:id/reduce",
-  protect,
+  authenticate,
   validate(reduceDonationQuantitySchema),
   reduceDonationQuantity
 );
-router.patch("/donation/:id/complete", protect, markDonationCompleted);
-router.delete("/donation/:id", protect, deleteDonation);
+router.patch("/donation/:id/complete", authenticate, markDonationCompleted);
+router.delete("/donation/:id", authenticate, deleteDonation);
 
 module.exports = router;
+
 

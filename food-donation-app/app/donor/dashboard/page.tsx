@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./dashboard.css";
-import { clearStoredAuthUser, getStoredAuthUser } from "../../lib/auth";
+import { clearStoredAuthUser, getStoredAuthUser, isAuthenticatedUser } from "../../lib/auth";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -14,12 +14,12 @@ export default function Dashboard() {
     // Check if user is logged in
     const authUser = getStoredAuthUser();
     
-    if (!authUser?.donorId) {
+    if (!isAuthenticatedUser(authUser)) {
       router.push("/donor/login");
       return;
     }
 
-    if (authUser.name) {
+    if (authUser?.name) {
       setDonorName(authUser.name);
     }
 

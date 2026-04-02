@@ -2,11 +2,17 @@
 
 import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
+import apiFetch from "@/app/lib/api";
 import "./style.css";
 
 type ContactFormResponse = {
     success: boolean;
+    data?: {
+        id: string;
+        emailSent: boolean;
+    };
     error?: string;
+    message?: string;
 };
 
 const Page = () => {
@@ -31,22 +37,18 @@ const Page = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch("/api/contact", {
+            const response = await apiFetch<ContactFormResponse>("/api/contact", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
+                body: {
                     name: trimmedName,
                     email: trimmedEmail,
                     message: trimmedMessage,
-                }),
+                },
+                skipAuth: true,
             });
 
-            const data: ContactFormResponse = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || "Failed to send message.");
+            if (!response.success) {
+                throw new Error(response.error || "Failed to send message.");
             }
 
             toast.success("Message Sent Successfully", { id: toastId });

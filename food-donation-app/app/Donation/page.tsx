@@ -5,7 +5,7 @@ import "./style.css";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { getStoredAuthToken, getStoredAuthUser } from "../lib/auth";
+import { getStoredAuthToken, getStoredAuthUser, isAuthenticatedUser } from "../lib/auth";
 import DonationCard from "./components/DonationCard";
 import { Donation, FoodCategory, QuantityUnit, SearchDonation } from "./types";
 import { isDonationAvailable, normalizeText } from "./utils";
@@ -80,7 +80,7 @@ const Page = () => {
   useEffect(() => {
     const authUser = getStoredAuthUser();
 
-    if (!authUser?.donorId) {
+    if (!isAuthenticatedUser(authUser)) {
       router.push("/donor/login");
       return;
     }
@@ -530,7 +530,7 @@ const Page = () => {
               </div>
 
               <div className="form-group full-width">
-                <label>Your Location</label>
+                <label>Your Location <span className="map-hint">(Drag the marker or click anywhere on the map to choose another pickup location.)</span></label>
                 <InteractiveLocationMap 
                   onLocationChange={handleLocationChange}
                   currentLocation={currentLocation}

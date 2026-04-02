@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getStoredAuthUser, isAdminUser } from "../lib/auth";
+import { getStoredAuthUser, isAdminUser, isAuthenticatedUser } from "../lib/auth";
 
 type AdminRouteProps = {
   children: ReactNode;
@@ -16,7 +16,7 @@ export default function AdminRoute({ children }: AdminRouteProps) {
 
   useEffect(() => {
     const authUser = getStoredAuthUser();
-    const canAccess = isAdminUser(authUser);
+    const canAccess = isAuthenticatedUser(authUser) && isAdminUser(authUser);
 
     if (!canAccess) {
       router.replace("/");

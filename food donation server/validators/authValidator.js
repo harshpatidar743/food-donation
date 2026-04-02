@@ -1,7 +1,8 @@
 const Joi = require('joi');
 
-const USER_TYPE_VALUES = ['individual', 'organization', 'business', 'business/restaurant', 'admin'];
-const ROLE_VALUES = ['individual', 'organization', 'business', 'business/restaurant', 'admin'];
+const ACCOUNT_TYPE_VALUES = ['individual', 'organization', 'ngo', 'business', 'restaurant', 'business/restaurant'];
+const LEGACY_ROLE_TYPE_VALUES = ['individual', 'organization', 'business', 'business/restaurant'];
+const ACCESS_ROLE_VALUES = ['user'];
 
 const normalizeType = (value) => {
   if (typeof value !== 'string') {
@@ -40,9 +41,9 @@ const registerSchema = Joi.object({
     'string.min': 'Phone number too short',
     'string.max': 'Phone number too long'
   }),
-  userType: Joi.string().trim().valid(...USER_TYPE_VALUES).optional(),
-  accountType: Joi.string().trim().valid(...USER_TYPE_VALUES).optional(),
-  role: Joi.string().trim().valid(...ROLE_VALUES).optional(),
+  userType: Joi.string().trim().valid(...ACCOUNT_TYPE_VALUES).optional(),
+  accountType: Joi.string().trim().valid(...ACCOUNT_TYPE_VALUES).optional(),
+  role: Joi.string().trim().valid(...LEGACY_ROLE_TYPE_VALUES, ...ACCESS_ROLE_VALUES).optional(),
   address: Joi.string().trim().max(250).allow('').optional(),
   city: Joi.string().trim().max(100).allow('').optional(),
   organizationName: Joi.string().trim().max(120).allow('').optional(),

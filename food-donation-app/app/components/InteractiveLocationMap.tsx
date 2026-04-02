@@ -217,9 +217,6 @@ export default function InteractiveLocationMap({
         >
           {isGpsLoading ? '🔄 Detecting...' : '🔄 Refresh GPS'}
         </button>
-        <p className="map-hint">
-          Drag the marker or click anywhere on the map to choose another pickup location.
-        </p>
         {error ? <p className="map-error">{error}</p> : null}
       </div>
 
@@ -302,14 +299,6 @@ export default function InteractiveLocationMap({
         .btn-refresh:disabled {
           opacity: 0.5;
           cursor: not-allowed;
-        }
-
-        .map-hint {
-          font-size: 0.8rem;
-          color: var(--text-secondary);
-          text-align: center;
-          margin: 0;
-          font-style: italic;
         }
 
         .map-error {

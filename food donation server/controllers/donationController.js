@@ -79,3 +79,30 @@ exports.deleteDonation = async (req, res, next) => {
   }
 };
 
+exports.getAdminDonations = async (req, res, next) => {
+  try {
+    const donations = await donationService.getAllDonationsForAdmin();
+    res.json(donations);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getAdminDashboard = async (req, res, next) => {
+  try {
+    const summary = await donationService.getAdminDashboardSummary();
+    res.json(summary);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteDonationAsAdmin = async (req, res, next) => {
+  try {
+    const result = await donationService.deleteDonationAsAdmin(req.params.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+

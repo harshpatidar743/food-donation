@@ -40,7 +40,7 @@ export default function Login() {
       const data: LoginResponse = await res.json();
 
       if (res.ok && data.donorId) {
-        const role = data.role || "individual";
+        const role = data.role || "user";
 
         persistAuthUser({
           donorId: data.donorId,

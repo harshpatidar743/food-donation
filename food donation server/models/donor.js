@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const normalizeAccessRole = (value) =>
+  String(value || "").trim().toLowerCase() === "admin" ? "admin" : "user";
+
 const donorSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -83,13 +86,16 @@ const donorSchema = new mongoose.Schema({
   },
 
   userType: {
-    type: String
+    type: String,
+    enum: ["individual", "organization", "business/restaurant"],
+    default: "individual"
   },
 
   role: {
     type: String,
-    enum: ["admin", "individual", "organization", "business/restaurant"],
-    default: "individual"
+    enum: ["user", "admin"],
+    default: "user",
+    set: (value) => (String(value || "").trim().toLowerCase() === "admin" ? "admin" : "user")
   },
 
   isVerified: {
@@ -102,5 +108,10 @@ const donorSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
+
+donorSchema.pre("validate", function (next) {
+  this.role = normalizeAccessRole(this.role);
+  next();
+});
 
 module.exports = mongoose.model("Donor", donorSchema);

@@ -8,6 +8,7 @@ import {
   AUTH_STORAGE_EVENT,
   clearStoredAuthUser,
   getStoredAuthUser,
+  isAuthenticatedUser,
   isAdminUser
 } from '../lib/auth';
 
@@ -48,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({
   useEffect(() => {
     const checkAuth = () => {
       const authUser = getStoredAuthUser();
-      setIsAuthenticated(!!authUser);
+      setIsAuthenticated(isAuthenticatedUser(authUser));
       setIsAdmin(isAdminUser(authUser));
     };
 

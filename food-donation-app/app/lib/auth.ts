@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "individual" | "organization" | "business/restaurant";
+export type UserRole = "admin" | "user";
 
 export type AuthUser = {
   donorId: string;
@@ -15,21 +15,8 @@ const AUTH_CHANGE_EVENT = "auth-change";
 
 const isBrowser = () => typeof window !== "undefined";
 
-const normalizeUserRole = (role: string | null): UserRole => {
-  switch (role) {
-    case "admin":
-      return "admin";
-    case "organization":
-    case "ngo":
-      return "organization";
-    case "business/restaurant":
-    case "business":
-    case "restaurant":
-      return "business/restaurant";
-    default:
-      return "individual";
-  }
-};
+const normalizeUserRole = (role: string | null): UserRole =>
+  role === "admin" ? "admin" : "user";
 
 export const getStoredAuthUser = (): AuthUser | null => {
   if (!isBrowser()) {
@@ -37,14 +24,21 @@ export const getStoredAuthUser = (): AuthUser | null => {
   }
 
   const donorId = localStorage.getItem(DONOR_ID_KEY);
+  const token = localStorage.getItem(DONOR_TOKEN_KEY) || undefined;
 
-  if (!donorId) {
+  if (!donorId || !token) {
+    if (donorId || localStorage.getItem(DONOR_ROLE_KEY) || localStorage.getItem(DONOR_NAME_KEY)) {
+      localStorage.removeItem(DONOR_ID_KEY);
+      localStorage.removeItem(DONOR_NAME_KEY);
+      localStorage.removeItem(DONOR_ROLE_KEY);
+      localStorage.removeItem(DONOR_TOKEN_KEY);
+    }
+
     return null;
   }
 
   const name = localStorage.getItem(DONOR_NAME_KEY) || undefined;
   const role = normalizeUserRole(localStorage.getItem(DONOR_ROLE_KEY));
-  const token = localStorage.getItem(DONOR_TOKEN_KEY) || undefined;
 
   return { donorId, name, role, token };
 };
@@ -86,5 +80,7 @@ export const clearStoredAuthUser = () => {
 
 export const isAdminUser = (user: AuthUser | null) => user?.role === "admin";
 export const getStoredAuthToken = () => getStoredAuthUser()?.token || null;
+export const isAuthenticatedUser = (user: AuthUser | null) =>
+  !!user?.donorId && !!user?.token;
 
 export const AUTH_STORAGE_EVENT = AUTH_CHANGE_EVENT;

@@ -23,8 +23,11 @@ const errorHandler = (err, req, res, next) => {
     message = err.message;
   }
 
-  // Log error in development
-  console.error(err.stack);
+  if (statusCode >= 500) {
+    console.error(err.stack);
+  } else {
+    console.warn(`${req.method} ${req.originalUrl} -> ${statusCode}: ${message}`);
+  }
 
   res.status(statusCode).json({
     success: false,
