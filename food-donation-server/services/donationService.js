@@ -184,7 +184,7 @@ exports.createDonation = async (data) => {
 
   return {
     donation: savedDonation,
-    message: "Food donation posted successfully!"
+    message: "FoodMatch posted successfully!"
   };
 };
 

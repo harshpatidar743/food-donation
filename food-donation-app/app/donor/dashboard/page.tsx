@@ -13,7 +13,7 @@ export default function Dashboard() {
   useEffect(() => {
     // Check if user is logged in
     const authUser = getStoredAuthUser();
-    
+
     if (!isAuthenticatedUser(authUser)) {
       router.push("/donor/login");
       return;
@@ -48,18 +48,18 @@ export default function Dashboard() {
       <div className="dashboard-container">
         <div className="dashboard-header">
           <h1>Donor Dashboard</h1>
-          <p>Manage your food donations</p>
+          <p>Manage your FoodMatchs</p>
         </div>
 
         {donorName && (
           <div className="welcome-message">
             <h2>Welcome, {donorName}!</h2>
-            <p>Thank you for being a part of our food donation initiative.</p>
+            <p>Thank you for being a part of our FoodMatch initiative.</p>
           </div>
         )}
 
         <div className="dashboard-actions">
-          <div 
+          <div
             className="action-card add-donation"
             onClick={() => router.push("/Donation")}
           >
@@ -68,16 +68,16 @@ export default function Dashboard() {
             <p>Donate your excess food to help those in need</p>
           </div>
 
-          <div 
+          <div
             className="action-card my-donations"
-onClick={() => router.push("/donor/myDonations")}
+            onClick={() => router.push("/donor/myDonations")}
           >
             <div className="icon">📋</div>
             <h3>My Donations</h3>
             <p>View and manage your previous donations</p>
           </div>
 
-          <div 
+          <div
             className="action-card logout"
             onClick={logout}
           >

@@ -26,7 +26,7 @@ const buildShareUrl = (pathOrUrl: string) => {
 export default function ShareDonationButton({
   pathOrUrl,
   title,
-  text = "Check out this active food donation listing.",
+  text = "Check out this active FoodMatch listing.",
   className,
   idleLabel = "Share",
   copiedLabel = "Link Copied"

@@ -75,7 +75,7 @@ export default function Footer() {
               <span className="site-footer__brand-mark">
                 <BrandMark />
               </span>
-              <span className="site-footer__brand-name">Food Donation</span>
+              <span className="site-footer__brand-name">FoodMatch</span>
             </Link>
             <p className="site-footer__description">
               Connecting donors, businesses, and NGOs to reduce food waste and help communities.
@@ -140,7 +140,7 @@ export default function Footer() {
         <div className="site-footer__divider" />
 
         <div className="site-footer__bottom">
-          <p className="site-footer__bottom-copy">&copy; 2024-2026 Food Donation Platform</p>
+          <p className="site-footer__bottom-copy">&copy; 2024-2026 FoodMatch</p>
           <p className="site-footer__bottom-note">Making a difference, one meal at a time.</p>
         </div>
       </div>

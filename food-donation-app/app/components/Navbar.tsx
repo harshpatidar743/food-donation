@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -22,8 +22,8 @@ interface NavbarProps {
   menuItems?: NavItem[];
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  siteTitle = 'Food Donation', 
+const Navbar: React.FC<NavbarProps> = ({
+  siteTitle = 'FoodMatch',
   menuItems = [
     { label: 'Home', href: '/' },
     { label: 'About Us', href: '/AboutUs' },
@@ -54,7 +54,7 @@ const Navbar: React.FC<NavbarProps> = ({
     };
 
     checkAuth();
-    
+
     window.addEventListener('storage', checkAuth);
     window.addEventListener(AUTH_STORAGE_EVENT, checkAuth);
 
@@ -150,8 +150,8 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="nav-section">
-          <button 
-            className={`hamburger ${isMenuOpen ? 'active' : ''}`} 
+          <button
+            className={`hamburger ${isMenuOpen ? 'active' : ''}`}
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
@@ -163,8 +163,8 @@ const Navbar: React.FC<NavbarProps> = ({
           <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
             {currentMenuItems.map((item) => (
               <li key={item.href} className="navbar-item">
-                <Link 
-                  href={item.href} 
+                <Link
+                  href={item.href}
                   className={`navbar-link ${pathname === item.href ? 'active' : ''}`}
                   onClick={closeMenu}
                 >
@@ -175,7 +175,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {isAuthenticated ? (
               <li className="navbar-item">
-                <button 
+                <button
                   className="navbar-link logout-link"
                   onClick={handleLogout}
                 >
@@ -184,8 +184,8 @@ const Navbar: React.FC<NavbarProps> = ({
               </li>
             ) : (
               <li className="navbar-item">
-                <Link 
-                  href="/donor/login" 
+                <Link
+                  href="/donor/login"
                   className={`navbar-link auth-link ${pathname === '/donor/login' ? 'active' : ''}`}
                   onClick={closeMenu}
                 >
@@ -195,8 +195,8 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
           </ul>
 
-          <div 
-            className={`mobile-overlay ${isMenuOpen ? 'active' : ''}`} 
+          <div
+            className={`mobile-overlay ${isMenuOpen ? 'active' : ''}`}
             onClick={closeMenu}
           />
         </div>

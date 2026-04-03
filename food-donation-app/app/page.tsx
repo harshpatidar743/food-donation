@@ -23,7 +23,7 @@ export default function Home() {
           <a href="#options" className="hero-button">Get Started</a>
         </div>
       </header>
-      
+
       <section id="options" className="options">
         <div className="option">
           <h2><span className="dual-color-text">Donate</span> Surplus Food</h2>
@@ -32,10 +32,10 @@ export default function Home() {
             <i className="fas fa-donate"></i> Donate Food
           </Link>
         </div>
-        
+
         <div className="option">
           <h2><span className="dual-color-text">Find</span> Available Food</h2>
-          <p>Discover available food donations from generous donors near you.</p>
+          <p>Discover available FoodMatchs from generous donors near you.</p>
           <Link href="/GetFood" className="button">
             <i className="fas fa-hamburger"></i> Get Food
           </Link>

@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!donation) {
     return {
-      title: "Donation Not Found | Food Donation Platform",
+      title: "Donation Not Found | FoodMatch",
       robots: {
         index: false,
         follow: false
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = `${getDonationTitle(donation)} in ${getDonationLocationLabel(donation)} | Food Donation Platform`;
+  const title = `${getDonationTitle(donation)} in ${getDonationLocationLabel(donation)} | FoodMatch Platform`;
   const description = buildMetadataDescription(donation);
   const url = buildDonationDetailUrl(id);
 
@@ -79,15 +79,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url,
-      siteName: "Food Donation Platform",
+      siteName: "FoodMatch",
       type: "article",
       images: donation.foodImage?.dataUrl
         ? [
-            {
-              url: donation.foodImage.dataUrl,
-              alt: getDonationTitle(donation)
-            }
-          ]
+          {
+            url: donation.foodImage.dataUrl,
+            alt: getDonationTitle(donation)
+          }
+        ]
         : undefined
     },
     twitter: {
@@ -121,7 +121,7 @@ export default async function DonationDetailPage({ params }: PageProps) {
     dateModified: donation.updatedAt,
     author: {
       "@type": "Organization",
-      name: "Food Donation Platform"
+      name: "FoodMatch"
     }
   };
 
@@ -251,7 +251,7 @@ export default async function DonationDetailPage({ params }: PageProps) {
                 />
               </div>
               <p className={styles.routeNote}>
-                This public page only shares pickup details for active food donations.
+                This public page only shares pickup details for active FoodMatchs.
               </p>
             </section>
           </aside>

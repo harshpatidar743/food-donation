@@ -19,7 +19,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Food Donation Platform",
+  title: "FoodMatch",
   description: "Join the fight against food waste by donating or receiving surplus food",
 };
 

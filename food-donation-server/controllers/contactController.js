@@ -25,7 +25,7 @@ const sendContactEmailNotification = async ({ name, email, message }) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      from: "Food Donation Website <onboarding@resend.dev>",
+      from: "FoodMatch Website <onboarding@resend.dev>",
       to: [CONTACT_NOTIFICATION_EMAIL],
       subject: "New Contact Message from Website",
       reply_to: email,

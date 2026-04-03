@@ -16,8 +16,8 @@ const Page = () => {
                 <section className="content-section">
                     <h2>Our Mission</h2>
                     <p>
-                        We are dedicated to reducing food waste and fighting hunger in our community. 
-                        Our platform connects donors with excess food to those who need it most. 
+                        We are dedicated to reducing food waste and fighting hunger in our community.
+                        Our platform connects donors with excess food to those who need it most.
                         Together, we can make a difference one meal at a time.
                     </p>
                 </section>
@@ -29,7 +29,7 @@ const Page = () => {
                     </p>
                     <ul className="feature-list">
                         <li>Donors to share their surplus food</li>
-                        <li>Those in need to find available food donations</li>
+                        <li>Those in need to find available FoodMatchs</li>
                         <li>Building a stronger, more connected community</li>
                     </ul>
                 </section>
@@ -37,7 +37,7 @@ const Page = () => {
                 <section className="content-section">
                     <h2>Join Our Cause</h2>
                     <p>
-                        Whether you have food to donate or need assistance, we are here to help. 
+                        Whether you have food to donate or need assistance, we are here to help.
                         Together, we can reduce waste and ensure no one goes hungry.
                     </p>
                 </section>

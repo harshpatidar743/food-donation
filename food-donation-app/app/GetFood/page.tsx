@@ -185,7 +185,7 @@ const Page = () => {
           <h1>
             Find Food <span className="dual-color-text">Donations</span> Near You
           </h1>
-          <p>Search for available food donations in your area and help reduce food waste.</p>
+          <p>Search for available FoodMatchs in your area and help reduce food waste.</p>
         </div>
       </header>
 
@@ -208,9 +208,8 @@ const Page = () => {
                   ? locationError
                   : currentLocation
                     ? currentLocation.area || currentLocation.city || currentLocation.pincode
-                      ? `Area: ${currentLocation.area || "Not found"} | City: ${
-                          currentLocation.city || "Not found"
-                        } | Pincode: ${currentLocation.pincode || "Not found"}`
+                      ? `Area: ${currentLocation.area || "Not found"} | City: ${currentLocation.city || "Not found"
+                      } | Pincode: ${currentLocation.pincode || "Not found"}`
                       : "GPS coordinates detected. Address lookup is unavailable, so nearby donations are being matched by distance."
                     : "Allow location access to auto-fill your search."}
               </p>
@@ -257,10 +256,10 @@ const Page = () => {
           ) : (
             <div className="donation-cards">
               {visibleDonations.map((donation) => (
-                <DonationCard 
-                  key={donation._id} 
-                  donation={donation} 
-                  showDonorName 
+                <DonationCard
+                  key={donation._id}
+                  donation={donation}
+                  showDonorName
                   currentLat={currentLocation?.lat}
                   currentLng={currentLocation?.lng}
                 />
