@@ -26,6 +26,11 @@ const requireFieldForType = (value, helper, label) => {
   return helper.message(`${label} is required`);
 };
 
+const hasValidPointCoordinates = (coordinates) =>
+  Array.isArray(coordinates) &&
+  coordinates.length === 2 &&
+  coordinates.every((coordinate) => typeof coordinate === 'number' && Number.isFinite(coordinate));
+
 const registerSchema = Joi.object({
   name: Joi.string().trim().min(2).max(50).required().messages({
     'string.empty': 'Name is required',
@@ -45,6 +50,10 @@ const registerSchema = Joi.object({
   accountType: Joi.string().trim().valid(...ACCOUNT_TYPE_VALUES).optional(),
   role: Joi.string().trim().valid(...LEGACY_ROLE_TYPE_VALUES, ...ACCESS_ROLE_VALUES).optional(),
   address: Joi.string().trim().max(250).allow('').optional(),
+  location: Joi.object({
+    type: Joi.string().trim().valid('Point').required(),
+    coordinates: Joi.array().items(Joi.number().required()).length(2).required()
+  }).optional(),
   city: Joi.string().trim().max(100).allow('').optional(),
   organizationName: Joi.string().trim().max(120).allow('').optional(),
   registrationNumber: Joi.string().trim().max(80).allow('').optional(),
@@ -71,9 +80,17 @@ const registerSchema = Joi.object({
     const error =
       requireFieldForType(value.organizationName, helper, 'Organization name') ||
       requireFieldForType(value.registrationNumber, helper, 'Registration number') ||
-      requireFieldForType(value.city, helper, 'City') ||
-      requireFieldForType(value.organizationAddress, helper, 'Organization address') ||
+      requireFieldForType(value.address, helper, 'Address') ||
+      requireFieldForType(value.organizationAddress, helper, 'Specific location details') ||
       requireFieldForType(value.organizationCertificateName, helper, 'Organization certificate');
+
+    if (error) {
+      return error;
+    }
+
+    if (!hasValidPointCoordinates(value.location?.coordinates)) {
+      return helper.message('Location coordinates are required');
+    }
 
     return error || value;
   }
@@ -83,8 +100,16 @@ const registerSchema = Joi.object({
       requireFieldForType(value.businessName, helper, 'Business name') ||
       requireFieldForType(value.businessType, helper, 'Business type') ||
       requireFieldForType(value.ownerName, helper, 'Owner name') ||
-      requireFieldForType(value.city, helper, 'City') ||
-      requireFieldForType(value.businessAddress, helper, 'Business address');
+      requireFieldForType(value.address, helper, 'Address') ||
+      requireFieldForType(value.businessAddress, helper, 'Specific location details');
+
+    if (error) {
+      return error;
+    }
+
+    if (!hasValidPointCoordinates(value.location?.coordinates)) {
+      return helper.message('Location coordinates are required');
+    }
 
     return error || value;
   }

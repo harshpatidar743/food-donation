@@ -1,12 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import type { LocationDetails } from "@/app/lib/location";
+import { useCurrentLocation } from "@/app/hooks/useCurrentLocation";
 import "./register.css";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 type UserType = "individual" | "organization" | "business";
+type RegistrationLocation = {
+  lat: number;
+  lng: number;
+  address: string;
+  city: string;
+};
+
+const InteractiveLocationMap = dynamic(
+  () => import("@/app/components/InteractiveLocationMap"),
+  {
+    ssr: false,
+    loading: () => <div className="map-loading-card">Loading map...</div>
+  }
+);
 
 const userTypeToRole = {
   individual: "individual",
@@ -23,7 +40,7 @@ const userTypeCards = [
   {
     type: "organization" as UserType,
     label: "Organization",
-    description: "Food banks, charities"
+    description: "NGOs, Food banks"
   },
   {
     type: "business" as UserType,
@@ -63,7 +80,20 @@ const createInitialForm = (userType: UserType) => ({
   gstNumber: ""
 });
 
-const buildPayload = (form: ReturnType<typeof createInitialForm>, userType: UserType) => {
+const requiresLocationSelection = (userType: UserType) =>
+  userType === "organization" || userType === "business";
+
+const buildRegistrationAddress = (...parts: Array<string | undefined>) =>
+  parts
+    .map((part) => part?.trim() || "")
+    .filter(Boolean)
+    .join(", ");
+
+const buildPayload = (
+  form: ReturnType<typeof createInitialForm>,
+  userType: UserType,
+  location: RegistrationLocation | null
+) => {
   const normalizedUserType = userTypeToRole[userType];
   const basePayload = {
     email: form.email,
@@ -83,25 +113,45 @@ const buildPayload = (form: ReturnType<typeof createInitialForm>, userType: User
   }
 
   if (userType === "organization") {
+    const specificLocationDetails = form.organizationAddress.trim();
+    const selectedAddress = location?.address || "";
+
     return {
       ...basePayload,
       name: form.organizationName,
-      city: form.city,
+      city: location?.city || form.city,
+      address: buildRegistrationAddress(specificLocationDetails, selectedAddress),
+      location: location
+        ? {
+            type: "Point",
+            coordinates: [location.lng, location.lat]
+          }
+        : undefined,
       organizationName: form.organizationName,
       registrationNumber: form.registrationNumber,
-      organizationAddress: form.organizationAddress,
+      organizationAddress: specificLocationDetails,
       organizationCertificateName: form.organizationCertificateName
     };
   }
 
+  const specificLocationDetails = form.businessAddress.trim();
+  const selectedAddress = location?.address || "";
+
   return {
     ...basePayload,
     name: form.businessName,
-    city: form.city,
+    city: location?.city || form.city,
+    address: buildRegistrationAddress(specificLocationDetails, selectedAddress),
+    location: location
+      ? {
+          type: "Point",
+          coordinates: [location.lng, location.lat]
+        }
+      : undefined,
     businessName: form.businessName,
     businessType: form.businessType,
     ownerName: form.ownerName,
-    businessAddress: form.businessAddress,
+    businessAddress: specificLocationDetails,
     gstNumber: form.gstNumber
   };
 };
@@ -113,6 +163,32 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [location, setLocation] = useState<RegistrationLocation | null>(null);
+  const isLocationRequired = requiresLocationSelection(userType);
+  const {
+    location: currentLocation,
+    isLoading: isLocationLoading,
+    error: locationError,
+    refreshLocation
+  } = useCurrentLocation(isLocationRequired);
+
+  const handleLocationChange = useCallback((loc: LocationDetails) => {
+    const selectedAddress = loc.fullAddress || loc.displayLocation;
+
+    setLocation({
+      lat: loc.lat,
+      lng: loc.lng,
+      address: selectedAddress,
+      city: loc.city
+    });
+
+    setForm((currentForm) => ({
+      ...currentForm,
+      city: loc.city || currentForm.city,
+    }));
+
+    setError("");
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -139,10 +215,17 @@ export default function Register() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (requiresLocationSelection(userType) && !location) {
+      setError(locationError || "Please select your location.");
+      alert("Please select your location");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const payload = buildPayload(form, userType);
+      const payload = buildPayload(form, userType, location);
 
       const res = await fetch(`${API}/register`, {
         method: "POST",
@@ -156,6 +239,7 @@ export default function Register() {
         setSuccess("Registration successful! Please login to continue.");
         setUserType("individual");
         setForm(createInitialForm("individual"));
+        setLocation(null);
         setTimeout(() => {
           router.push("/donor/login");
         }, 2000);
@@ -168,6 +252,8 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+  const isSubmitDisabled = loading || (isLocationRequired && (!location || isLocationLoading));
 
   return (
     <div className="register-page">
@@ -340,26 +426,48 @@ export default function Register() {
                       />
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="city">City</label>
-                      <input
-                        id="city"
-                        name="city"
-                        type="text"
-                        placeholder="Enter your city"
-                        value={form.city}
-                        onChange={handleChange}
-                        required
+                    <div className="form-group full-width">
+                      <label>
+                        Organization Location{" "}
+                        <span className="map-hint">
+                          Use the shared map to capture your registered address.
+                        </span>
+                      </label>
+                      <InteractiveLocationMap
+                        onLocationChange={handleLocationChange}
+                        currentLocation={currentLocation}
+                        isGpsLoading={isLocationLoading}
+                        onRefreshGps={refreshLocation}
+                        className="registration-location-map"
                       />
+                      {locationError && !location && (
+                        <p className="field-hint field-hint--warning">{locationError}</p>
+                      )}
                     </div>
 
                     <div className="form-group full-width">
-                      <label htmlFor="organizationAddress">Organization Address</label>
+                      <label htmlFor="organizationSelectedAddress">Selected Address</label>
+                      <textarea
+                        id="organizationSelectedAddress"
+                        className="location-preview"
+                        value={location?.address || "Select your organization location on the map."}
+                        rows={3}
+                        readOnly
+                      />
+                      {!location && (
+                        <p className="field-error">Select your location to enable registration.</p>
+                      )}
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label htmlFor="organizationAddress">
+                        Specific Location Details
+                      </label>
                       <input
                         id="organizationAddress"
                         name="organizationAddress"
                         type="text"
-                        placeholder="Enter your organization address"
+                        placeholder="Enter shop no., building no., floor, suite, etc."
                         value={form.organizationAddress}
                         onChange={handleChange}
                         required
@@ -464,19 +572,6 @@ export default function Register() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="city">City</label>
-                      <input
-                        id="city"
-                        name="city"
-                        type="text"
-                        placeholder="Enter your city"
-                        value={form.city}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
                       <label htmlFor="gstNumber">GST Number</label>
                       <input
                         id="gstNumber"
@@ -489,12 +584,47 @@ export default function Register() {
                     </div>
 
                     <div className="form-group full-width">
-                      <label htmlFor="businessAddress">Business Address</label>
+                      <label>
+                        Business Location{" "}
+                        <span className="map-hint">
+                          Use the shared map to capture your restaurant or business address.
+                        </span>
+                      </label>
+                      <InteractiveLocationMap
+                        onLocationChange={handleLocationChange}
+                        currentLocation={currentLocation}
+                        isGpsLoading={isLocationLoading}
+                        onRefreshGps={refreshLocation}
+                        className="registration-location-map"
+                      />
+                      {locationError && !location && (
+                        <p className="field-hint field-hint--warning">{locationError}</p>
+                      )}
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label htmlFor="businessSelectedAddress">Selected Address</label>
+                      <textarea
+                        id="businessSelectedAddress"
+                        className="location-preview"
+                        value={location?.address || "Select your business location on the map."}
+                        rows={3}
+                        readOnly
+                      />
+                      {!location && (
+                        <p className="field-error">Select your location to enable registration.</p>
+                      )}
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label htmlFor="businessAddress">
+                        Specific Location Details
+                      </label>
                       <input
                         id="businessAddress"
                         name="businessAddress"
                         type="text"
-                        placeholder="Enter your business address"
+                        placeholder="Enter shop no., building no., floor, suite, etc."
                         value={form.businessAddress}
                         onChange={handleChange}
                         required
@@ -504,7 +634,7 @@ export default function Register() {
                 )}
               </div>
 
-              <button type="submit" className="register-button" disabled={loading}>
+              <button type="submit" className="register-button" disabled={isSubmitDisabled}>
                 {loading ? "Registering..." : userTypeButtonLabels[userType]}
               </button>
             </form>

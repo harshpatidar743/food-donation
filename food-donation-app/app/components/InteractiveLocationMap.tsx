@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -13,6 +13,23 @@ export interface InteractiveLocationMapProps {
   currentLocation?: LocationDetails | null;
   isGpsLoading?: boolean;
   onRefreshGps: () => void;
+}
+
+const DEFAULT_MAP_CENTER: LatLngExpression = [20.5937, 78.9629];
+const LOCATION_ZOOM = 15;
+
+function MapViewportController({ position }: { position: LatLngExpression | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!position) {
+      return;
+    }
+
+    map.setView(position, LOCATION_ZOOM);
+  }, [map, position]);
+
+  return null;
 }
 
 export default function InteractiveLocationMap({
@@ -66,7 +83,7 @@ export default function InteractiveLocationMap({
       onLocationChangeRef.current(newLocation);
       
       if (mapRef.current) {
-        mapRef.current.setView([lat, lng], 15);
+        mapRef.current.setView([lat, lng], LOCATION_ZOOM);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Location lookup failed');
@@ -90,7 +107,7 @@ export default function InteractiveLocationMap({
       onLocationChangeRef.current(nextLocation);
 
       if (mapRef.current) {
-        mapRef.current.setView([nextLocation.lat, nextLocation.lng], 15);
+        mapRef.current.setView([nextLocation.lat, nextLocation.lng], LOCATION_ZOOM);
       }
     }
   }, [currentLocation, hasManualSelection]);
@@ -158,7 +175,7 @@ export default function InteractiveLocationMap({
     return null;
   };
 
-  if (!position || isGpsLoading) {
+  if (!position && isGpsLoading) {
     return (
       <div className={`interactive-location-map ${className}`}>
         <div className="map-loading">
@@ -176,14 +193,15 @@ export default function InteractiveLocationMap({
     <div className={`interactive-location-map ${className}`}>
       <div className="map-container">
         <MapContainer
-          center={position as LatLngExpression}
-          zoom={15}
+          center={(position || DEFAULT_MAP_CENTER) as LatLngExpression}
+          zoom={position ? 15 : 5}
           style={{ height: '300px', width: '100%', borderRadius: '8px' }}
         >
           <TileLayer
             attribution='&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          <MapViewportController position={position} />
           <MapEvents />
           {position && (
             <Marker 
@@ -196,19 +214,19 @@ export default function InteractiveLocationMap({
       </div>
 
       <div className="map-controls">
-        <div className="selection-summary" aria-live="polite">
+        {/* <div className="selection-summary" aria-live="polite">
           <p className="selection-summary__title">
-            {hasManualSelection ? 'Selected custom pickup location' : 'Selected pickup location'}
+            {hasManualSelection ? 'Selected custom location' : 'Selected location'}
           </p>
           <p className="selection-summary__text">
-            {location?.displayLocation || fullAddress || 'Move the marker to choose a pickup point.'}
+            {location?.displayLocation || fullAddress || 'Click anywhere on the map or refresh GPS to choose your location.'}
           </p>
           {location ? (
             <p className="selection-summary__meta">
               Lat {location.lat.toFixed(5)}, Lng {location.lng.toFixed(5)}
             </p>
           ) : null}
-        </div>
+        </div> */}
 
         <button 
           onClick={handleRefreshGPS} 
@@ -344,4 +362,3 @@ export default function InteractiveLocationMap({
     </div>
   );
 }
-

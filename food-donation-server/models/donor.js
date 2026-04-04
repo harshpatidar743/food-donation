@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const normalizeAccessRole = (value) =>
   String(value || "").trim().toLowerCase() === "admin" ? "admin" : "user";
 
+const requiresGeoLocation = function () {
+  return this.userType === "organization" || this.userType === "business/restaurant";
+};
+
 const donorSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -32,7 +36,32 @@ const donorSchema = new mongoose.Schema({
 
   address: {
     type: String,
-    trim: true
+    trim: true,
+    required: function () {
+      return requiresGeoLocation.call(this);
+    }
+  },
+
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point"
+    },
+    coordinates: {
+      type: [Number],
+      required: function () {
+        return requiresGeoLocation.call(this);
+      },
+      validate: {
+        validator: (value) =>
+          !value ||
+          (Array.isArray(value) &&
+            value.length === 2 &&
+            value.every((coordinate) => Number.isFinite(coordinate))),
+        message: "Location coordinates must include valid longitude and latitude values"
+      }
+    }
   },
 
   city: {
@@ -113,5 +142,7 @@ donorSchema.pre("validate", function (next) {
   this.role = normalizeAccessRole(this.role);
   next();
 });
+
+donorSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Donor", donorSchema);

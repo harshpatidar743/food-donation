@@ -19,9 +19,9 @@ const getLocationErrorMessage = (error: GeolocationPositionError) => {
   return "Unable to get your current location.";
 };
 
-export const useCurrentLocation = () => {
+export const useCurrentLocation = (enabled = true) => {
   const [location, setLocation] = useState<LocationDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState("");
   const requestedOnMountRef = useRef(false);
 
@@ -76,13 +76,19 @@ export const useCurrentLocation = () => {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      setError("");
+      return;
+    }
+
     if (requestedOnMountRef.current) {
       return;
     }
 
     requestedOnMountRef.current = true;
     refreshLocation();
-  }, [refreshLocation]);
+  }, [enabled, refreshLocation]);
 
   return {
     location,

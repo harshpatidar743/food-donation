@@ -23,12 +23,36 @@ const normalizeAccountType = (value) => ACCOUNT_TYPE_MAP[normalizeText(value).to
 const normalizeAccessRole = (value) => ACCESS_ROLE_MAP[normalizeText(value).toLowerCase()] || 'user';
 const getRegistrationAccountType = (value) => normalizeAccountType(value) || 'individual';
 const isBcryptHash = (value) => typeof value === 'string' && /^\$2[aby]\$/.test(value);
+const requiresRegistrationLocation = (userType) =>
+  userType === 'organization' || userType === 'business/restaurant';
 const assignIfPresent = (target, key, value) => {
   const normalizedValue = normalizeText(value);
 
   if (normalizedValue) {
     target[key] = normalizedValue;
   }
+};
+const normalizeLocation = (value) => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const coordinates = Array.isArray(value.coordinates)
+    ? value.coordinates.map((coordinate) => Number(coordinate))
+    : [];
+
+  if (
+    normalizeText(value.type) !== 'Point' ||
+    coordinates.length !== 2 ||
+    coordinates.some((coordinate) => !Number.isFinite(coordinate))
+  ) {
+    return null;
+  }
+
+  return {
+    type: 'Point',
+    coordinates
+  };
 };
 
 const generateToken = () => crypto.randomBytes(32).toString('hex');
@@ -51,6 +75,7 @@ exports.registerUser = async (data) => {
     userType,
     accountType,
     role,
+    location,
     address,
     city,
     organizationName,
@@ -84,6 +109,8 @@ exports.registerUser = async (data) => {
   const hashedPassword = await bcrypt.hash(password, salt);
   const token = generateToken();
   const assignedUserType = getRegistrationAccountType(accountType || userType || role);
+  const normalizedAddress = normalizeText(address);
+  const normalizedLocation = normalizeLocation(location);
   const donorData = {
     name: normalizedName,
     email: normalizedEmail,
@@ -99,11 +126,28 @@ exports.registerUser = async (data) => {
     assignIfPresent(donorData, 'address', address);
   }
 
+  if (requiresRegistrationLocation(assignedUserType)) {
+    if (!normalizedLocation) {
+      const error = new Error('Location coordinates are required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!normalizedAddress) {
+      const error = new Error('Address is required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    donorData.location = normalizedLocation;
+    donorData.address = normalizedAddress;
+  }
+
   if (assignedUserType === 'organization') {
     assignIfPresent(donorData, 'city', city);
     assignIfPresent(donorData, 'organizationName', organizationName);
     assignIfPresent(donorData, 'registrationNumber', registrationNumber);
-    assignIfPresent(donorData, 'organizationAddress', organizationAddress);
+    assignIfPresent(donorData, 'organizationAddress', organizationAddress || normalizedAddress);
     assignIfPresent(donorData, 'organizationCertificateName', organizationCertificateName);
   }
 
@@ -112,7 +156,7 @@ exports.registerUser = async (data) => {
     assignIfPresent(donorData, 'businessName', businessName);
     assignIfPresent(donorData, 'businessType', businessType);
     assignIfPresent(donorData, 'ownerName', ownerName);
-    assignIfPresent(donorData, 'businessAddress', businessAddress);
+    assignIfPresent(donorData, 'businessAddress', businessAddress || normalizedAddress);
     assignIfPresent(donorData, 'gstNumber', gstNumber);
   }
 
