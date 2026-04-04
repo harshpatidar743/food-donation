@@ -42,7 +42,7 @@ export const getDonationStatus = (donation: Donation): string => {
   return 'active';
 };
 
-export const getPhoneHref = (phone: string): string => `tel:${phone.replace(/[^\\d+]/g, '')}`;
+export const getPhoneHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, '')}`;
 
 export const getDonationLocationLabel = (donation: Donation): string => donation.location || donation.city || 'Location unavailable';
 
