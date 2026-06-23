@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const ACCOUNT_TYPE_VALUES = ['individual', 'organization', 'ngo', 'business', 'restaurant', 'business/restaurant'];
 const LEGACY_ROLE_TYPE_VALUES = ['individual', 'organization', 'business', 'business/restaurant'];
-const ACCESS_ROLE_VALUES = ['user'];
+const ACCESS_ROLE_VALUES = ['user', 'admin'];
 
 const normalizeType = (value) => {
   if (typeof value !== 'string') {
@@ -11,7 +11,7 @@ const normalizeType = (value) => {
 
   const normalizedValue = value.trim().toLowerCase();
 
-  if (normalizedValue === 'business') {
+  if (normalizedValue === 'business' || normalizedValue === 'restaurant') {
     return 'business/restaurant';
   }
 
@@ -54,16 +54,7 @@ const registerSchema = Joi.object({
     type: Joi.string().trim().valid('Point').required(),
     coordinates: Joi.array().items(Joi.number().required()).length(2).required()
   }).optional(),
-  city: Joi.string().trim().max(100).allow('').optional(),
-  organizationName: Joi.string().trim().max(120).allow('').optional(),
-  registrationNumber: Joi.string().trim().max(80).allow('').optional(),
-  organizationAddress: Joi.string().trim().max(250).allow('').optional(),
-  organizationCertificateName: Joi.string().trim().max(255).allow('').optional(),
-  businessName: Joi.string().trim().max(120).allow('').optional(),
-  businessType: Joi.string().trim().max(120).allow('').optional(),
-  ownerName: Joi.string().trim().max(120).allow('').optional(),
-  businessAddress: Joi.string().trim().max(250).allow('').optional(),
-  gstNumber: Joi.string().trim().max(50).allow('').optional()
+  city: Joi.string().trim().max(100).allow('').optional()
 }).custom((value, helper) => {
   const resolvedType =
     normalizeType(value.accountType) ||
@@ -71,47 +62,10 @@ const registerSchema = Joi.object({
     normalizeType(value.userType) ||
     'individual';
 
-  if (resolvedType === 'individual') {
-    const error = requireFieldForType(value.address, helper, 'Address');
-    return error || value;
-  }
-
-  if (resolvedType === 'organization') {
-    const error =
-      requireFieldForType(value.organizationName, helper, 'Organization name') ||
-      requireFieldForType(value.registrationNumber, helper, 'Registration number') ||
-      requireFieldForType(value.address, helper, 'Address') ||
-      requireFieldForType(value.organizationAddress, helper, 'Specific location details') ||
-      requireFieldForType(value.organizationCertificateName, helper, 'Organization certificate');
-
-    if (error) {
-      return error;
-    }
-
+  if (resolvedType === 'organization' || resolvedType === 'business/restaurant') {
     if (!hasValidPointCoordinates(value.location?.coordinates)) {
       return helper.message('Location coordinates are required');
     }
-
-    return error || value;
-  }
-
-  if (resolvedType === 'business/restaurant') {
-    const error =
-      requireFieldForType(value.businessName, helper, 'Business name') ||
-      requireFieldForType(value.businessType, helper, 'Business type') ||
-      requireFieldForType(value.ownerName, helper, 'Owner name') ||
-      requireFieldForType(value.address, helper, 'Address') ||
-      requireFieldForType(value.businessAddress, helper, 'Specific location details');
-
-    if (error) {
-      return error;
-    }
-
-    if (!hasValidPointCoordinates(value.location?.coordinates)) {
-      return helper.message('Location coordinates are required');
-    }
-
-    return error || value;
   }
 
   return value;

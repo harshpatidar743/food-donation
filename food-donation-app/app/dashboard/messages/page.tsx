@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiDelete, apiGet } from "@/app/lib/api";
+import AdminRoute from "@/app/components/AdminRoute";
 import "./style.css";
 
 type ContactMessage = {
@@ -105,8 +106,9 @@ export default function DashboardMessagesPage() {
   };
 
   return (
-    <div className="messages-page">
-      <header>
+    <AdminRoute>
+      <div className="messages-page">
+        <header>
         <div className="hero-small">
           <h1>Admin Messages</h1>
           <p>Contact form submissions are saved here for the admin team.</p>
@@ -198,6 +200,7 @@ export default function DashboardMessagesPage() {
       {/* <style jsx>{`
         
       `}</style> */}
-    </div>
+      </div>
+    </AdminRoute>
   );
 }

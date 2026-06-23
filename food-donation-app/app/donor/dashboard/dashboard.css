@@ -36,7 +36,6 @@
 }
 
 .welcome-message h2 {
-    /* color: #ffcc00; */
     margin: 0 0 10px 0;
 }
 
@@ -86,42 +85,6 @@
     font-size: 0.95em;
 }
 
-.action-card.add-donation {
-    /* background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
-.action-card.add-donation:hover {
-    /* background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
-.action-card.my-donations {
-    /* background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
-.action-card.my-donations:hover {
-    /* background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
-.action-card.logout {
-    /* background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
-.action-card.logout:hover {
-    /* background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%); */
-    background-color: #1a1a1a;
-    border: none;
-}
-
 .dashboard-stats {
     background-color: #1a1a1a;
     padding: 30px;
@@ -159,7 +122,6 @@
     margin-top: 5px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .dashboard-header h1 {
         font-size: 2em;
@@ -183,4 +145,3 @@
         font-size: 2.5em;
     }
 }
-

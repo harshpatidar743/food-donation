@@ -61,100 +61,22 @@ const userTypeButtonLabels: Record<UserType, string> = {
   business: "Register as Business / Restaurant"
 };
 
+const nameLabels: Record<UserType, string> = {
+  individual: "Full Name",
+  organization: "Organization Name",
+  business: "Business Name"
+};
+
 const createInitialForm = (userType: UserType) => ({
   userType,
   name: "",
   email: "",
   password: "",
-  phone: "",
-  address: "",
-  city: "",
-  organizationName: "",
-  registrationNumber: "",
-  organizationAddress: "",
-  organizationCertificateName: "",
-  businessName: "",
-  businessType: "",
-  ownerName: "",
-  businessAddress: "",
-  gstNumber: ""
+  phone: ""
 });
 
 const requiresLocationSelection = (userType: UserType) =>
   userType === "organization" || userType === "business";
-
-const buildRegistrationAddress = (...parts: Array<string | undefined>) =>
-  parts
-    .map((part) => part?.trim() || "")
-    .filter(Boolean)
-    .join(", ");
-
-const buildPayload = (
-  form: ReturnType<typeof createInitialForm>,
-  userType: UserType,
-  location: RegistrationLocation | null
-) => {
-  const normalizedUserType = userTypeToRole[userType];
-  const basePayload = {
-    email: form.email,
-    password: form.password,
-    phone: form.phone,
-    userType: normalizedUserType,
-    accountType: normalizedUserType,
-    role: normalizedUserType
-  };
-
-  if (userType === "individual") {
-    return {
-      ...basePayload,
-      name: form.name,
-      address: form.address
-    };
-  }
-
-  if (userType === "organization") {
-    const specificLocationDetails = form.organizationAddress.trim();
-    const selectedAddress = location?.address || "";
-
-    return {
-      ...basePayload,
-      name: form.organizationName,
-      city: location?.city || form.city,
-      address: buildRegistrationAddress(specificLocationDetails, selectedAddress),
-      location: location
-        ? {
-            type: "Point",
-            coordinates: [location.lng, location.lat]
-          }
-        : undefined,
-      organizationName: form.organizationName,
-      registrationNumber: form.registrationNumber,
-      organizationAddress: specificLocationDetails,
-      organizationCertificateName: form.organizationCertificateName
-    };
-  }
-
-  const specificLocationDetails = form.businessAddress.trim();
-  const selectedAddress = location?.address || "";
-
-  return {
-    ...basePayload,
-    name: form.businessName,
-    city: location?.city || form.city,
-    address: buildRegistrationAddress(specificLocationDetails, selectedAddress),
-    location: location
-      ? {
-          type: "Point",
-          coordinates: [location.lng, location.lat]
-        }
-      : undefined,
-    businessName: form.businessName,
-    businessType: form.businessType,
-    ownerName: form.ownerName,
-    businessAddress: specificLocationDetails,
-    gstNumber: form.gstNumber
-  };
-};
 
 export default function Register() {
   const router = useRouter();
@@ -164,6 +86,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [location, setLocation] = useState<RegistrationLocation | null>(null);
+
   const isLocationRequired = requiresLocationSelection(userType);
   const {
     location: currentLocation,
@@ -179,35 +102,21 @@ export default function Register() {
       lat: loc.lat,
       lng: loc.lng,
       address: selectedAddress,
-      city: loc.city
+      city: loc.city || ""
     });
-
-    setForm((currentForm) => ({
-      ...currentForm,
-      city: loc.city || currentForm.city,
-    }));
 
     setError("");
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleUserTypeChange = (selectedType: UserType) => {
     setUserType(selectedType);
-    setForm((currentForm) => ({
+    setForm(currentForm => ({
       ...currentForm,
       userType: selectedType
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    setForm((currentForm) => ({
-      ...currentForm,
-      organizationCertificateName: file?.name || ""
     }));
   };
 
@@ -217,15 +126,33 @@ export default function Register() {
     setSuccess("");
 
     if (requiresLocationSelection(userType) && !location) {
-      setError(locationError || "Please select your location.");
-      alert("Please select your location");
+      setError(locationError || "Please select your location on the map.");
+      alert("Please select your location on the map.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const payload = buildPayload(form, userType, location);
+      const normalizedUserType = userTypeToRole[userType];
+      const payload: any = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        phone: form.phone,
+        userType: normalizedUserType,
+        accountType: normalizedUserType,
+        role: normalizedUserType
+      };
+
+      if (isLocationRequired && location) {
+        payload.location = {
+          type: "Point",
+          coordinates: [location.lng, location.lat]
+        }
+        payload.address = location.address;
+        payload.city = location.city;
+      }
 
       const res = await fetch(`${API}/register`, {
         method: "POST",
@@ -290,147 +217,65 @@ export default function Register() {
 
             <form className="register-form" onSubmit={handleSubmit}>
               <div className="form-grid">
-                {userType === "individual" && (
+                <div className="form-group">
+                  <label htmlFor="name">{nameLabels[userType]}</label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder={`Enter your ${nameLabels[userType].toLowerCase()}`}
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Create a password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="phone">Phone Number</label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={form.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {isLocationRequired && (
                   <>
-                    <div className="form-group">
-                      <label htmlFor="email">Email</label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="password">Password</label>
-                      <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="name">Full Name</label>
-                      <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={form.name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="phone">Phone Number</label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        value={form.phone}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label htmlFor="address">Address</label>
-                      <input
-                        id="address"
-                        name="address"
-                        type="text"
-                        placeholder="Enter your address"
-                        value={form.address}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-
-                {userType === "organization" && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="organizationName">Organization Name</label>
-                      <input
-                        id="organizationName"
-                        name="organizationName"
-                        type="text"
-                        placeholder="Enter your organization name"
-                        value={form.organizationName}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="registrationNumber">Registration Number</label>
-                      <input
-                        id="registrationNumber"
-                        name="registrationNumber"
-                        type="text"
-                        placeholder="Enter your registration number"
-                        value={form.registrationNumber}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="email">Email</label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="password">Password</label>
-                      <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="phone">Phone Number</label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        value={form.phone}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
                     <div className="form-group full-width">
                       <label>
-                        Organization Location{" "}
+                        Location <span className="required">*</span>
                         <span className="map-hint">
-                          Use the shared map to capture your registered address.
+                          Please drop a pin on the map to accurately record your location.
                         </span>
                       </label>
                       <InteractiveLocationMap
@@ -446,189 +291,17 @@ export default function Register() {
                     </div>
 
                     <div className="form-group full-width">
-                      <label htmlFor="organizationSelectedAddress">Selected Address</label>
+                      <label htmlFor="selectedAddress">Selected Address</label>
                       <textarea
-                        id="organizationSelectedAddress"
+                        id="selectedAddress"
                         className="location-preview"
-                        value={location?.address || "Select your organization location on the map."}
+                        value={location?.address || "Select your location on the map above."}
                         rows={3}
                         readOnly
                       />
                       {!location && (
-                        <p className="field-error">Select your location to enable registration.</p>
+                        <p className="field-error">You must select a location to continue.</p>
                       )}
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label htmlFor="organizationAddress">
-                        Specific Location Details
-                      </label>
-                      <input
-                        id="organizationAddress"
-                        name="organizationAddress"
-                        type="text"
-                        placeholder="Enter shop no., building no., floor, suite, etc."
-                        value={form.organizationAddress}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label htmlFor="organizationCertificate">Certificate Upload</label>
-                      <input
-                        id="organizationCertificate"
-                        name="organizationCertificate"
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={handleFileChange}
-                        required
-                      />
-                      {form.organizationCertificateName && (
-                        <p className="form-hint">Selected file: {form.organizationCertificateName}</p>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {userType === "business" && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="businessName">Business Name</label>
-                      <input
-                        id="businessName"
-                        name="businessName"
-                        type="text"
-                        placeholder="Enter your business name"
-                        value={form.businessName}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="businessType">Business Type</label>
-                      <input
-                        id="businessType"
-                        name="businessType"
-                        type="text"
-                        placeholder="Restaurant, Hotel, Catering, etc."
-                        value={form.businessType}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="ownerName">Owner Name</label>
-                      <input
-                        id="ownerName"
-                        name="ownerName"
-                        type="text"
-                        placeholder="Enter the owner's name"
-                        value={form.ownerName}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="email">Email</label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="password">Password</label>
-                      <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Create a password"
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="phone">Phone Number</label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        value={form.phone}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="gstNumber">GST Number</label>
-                      <input
-                        id="gstNumber"
-                        name="gstNumber"
-                        type="text"
-                        placeholder="Enter your GST number"
-                        value={form.gstNumber}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label>
-                        Business Location{" "}
-                        <span className="map-hint">
-                          Use the shared map to capture your restaurant or business address.
-                        </span>
-                      </label>
-                      <InteractiveLocationMap
-                        onLocationChange={handleLocationChange}
-                        currentLocation={currentLocation}
-                        isGpsLoading={isLocationLoading}
-                        onRefreshGps={refreshLocation}
-                        className="registration-location-map"
-                      />
-                      {locationError && !location && (
-                        <p className="field-hint field-hint--warning">{locationError}</p>
-                      )}
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label htmlFor="businessSelectedAddress">Selected Address</label>
-                      <textarea
-                        id="businessSelectedAddress"
-                        className="location-preview"
-                        value={location?.address || "Select your business location on the map."}
-                        rows={3}
-                        readOnly
-                      />
-                      {!location && (
-                        <p className="field-error">Select your location to enable registration.</p>
-                      )}
-                    </div>
-
-                    <div className="form-group full-width">
-                      <label htmlFor="businessAddress">
-                        Specific Location Details
-                      </label>
-                      <input
-                        id="businessAddress"
-                        name="businessAddress"
-                        type="text"
-                        placeholder="Enter shop no., building no., floor, suite, etc."
-                        value={form.businessAddress}
-                        onChange={handleChange}
-                        required
-                      />
                     </div>
                   </>
                 )}

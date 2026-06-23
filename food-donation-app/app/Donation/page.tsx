@@ -186,7 +186,7 @@ const Page = () => {
       errors.location = "Pincode is invalid. Adjust marker or refresh GPS.";
     }
 
-                if (!trimmedPickupPoint) {
+    if (!trimmedPickupPoint) {
       errors.pickupPoint =
         "House No / Building Name / Restaurant Name / NGO Name is required.";
     }
@@ -358,10 +358,10 @@ const Page = () => {
       additionalNotes: formData.additionalNotes.trim(),
       foodImage: formData.foodImageData
         ? {
-            fileName: formData.foodImageName,
-            contentType: formData.foodImageType,
-            dataUrl: formData.foodImageData
-          }
+          fileName: formData.foodImageName,
+          contentType: formData.foodImageType,
+          dataUrl: formData.foodImageData
+        }
         : undefined
     };
 
@@ -531,7 +531,7 @@ const Page = () => {
 
               <div className="form-group full-width">
                 <label>Your Location <span className="map-hint">(Drag the marker or click anywhere on the map to choose another pickup location.)</span></label>
-                <InteractiveLocationMap 
+                <InteractiveLocationMap
                   onLocationChange={handleLocationChange}
                   currentLocation={currentLocation}
                   isGpsLoading={isLocationLoading}

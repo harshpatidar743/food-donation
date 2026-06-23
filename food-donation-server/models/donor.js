@@ -45,8 +45,7 @@ const donorSchema = new mongoose.Schema({
   location: {
     type: {
       type: String,
-      enum: ["Point"],
-      default: "Point"
+      enum: ["Point"]
     },
     coordinates: {
       type: [Number],
@@ -69,47 +68,17 @@ const donorSchema = new mongoose.Schema({
     trim: true
   },
 
-  organizationName: {
+  description: {
     type: String,
     trim: true
   },
 
-  registrationNumber: {
+  profileImage: {
     type: String,
     trim: true
   },
 
-  organizationAddress: {
-    type: String,
-    trim: true
-  },
-
-  organizationCertificateName: {
-    type: String,
-    trim: true
-  },
-
-  businessName: {
-    type: String,
-    trim: true
-  },
-
-  businessType: {
-    type: String,
-    trim: true
-  },
-
-  ownerName: {
-    type: String,
-    trim: true
-  },
-
-  businessAddress: {
-    type: String,
-    trim: true
-  },
-
-  gstNumber: {
+  operatingHours: {
     type: String,
     trim: true
   },

@@ -76,31 +76,31 @@ const Page = () => {
                 <section className="form-section">
                     <h2>Send Us a Message</h2>
                     <form id="contactForm" className="form-container" onSubmit={handleSubmit}>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            placeholder="Your Name" 
+                        <input
+                            type="text"
+                            id="name"
+                            placeholder="Your Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             disabled={isSubmitting}
-                            required 
+                            required
                         />
-                        <input 
-                            type="email" 
-                            id="email" 
-                            placeholder="Your Email" 
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Your Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={isSubmitting}
-                            required 
+                            required
                         />
-                        <textarea 
-                            id="message" 
-                            placeholder="Your Message" 
+                        <textarea
+                            id="message"
+                            placeholder="Your Message"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             disabled={isSubmitting}
-                            required 
+                            required
                             rows={5}
                         ></textarea>
 

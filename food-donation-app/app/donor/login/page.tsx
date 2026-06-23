@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./login.module.css";
-import { persistAuthUser, type UserRole } from "../../lib/auth";
+import { persistAuthUser, type AuthUserType, type UserRole } from "../../lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -12,6 +12,7 @@ type LoginResponse = {
   donorId?: string;
   name?: string;
   role?: UserRole;
+  userType?: AuthUserType;
   token?: string;
   message?: string;
   error?: string;
@@ -54,6 +55,7 @@ export default function Login() {
           donorId: data.donorId,
           name: data.name,
           role,
+          userType: data.userType,
           token: data.token
         });
 

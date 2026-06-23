@@ -1,209 +1,325 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import './Navbar.css';
+import Link from "next/link";
+import { Menu } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import NotificationDropdown from "./navigation/NotificationDropdown";
+import ProfileDropdown from "./navigation/ProfileDropdown";
+import Sidebar from "./navigation/Sidebar";
+import styles from "./Navbar.module.css";
 import {
   AUTH_STORAGE_EVENT,
   clearStoredAuthUser,
   getStoredAuthUser,
+  isAdminUser,
   isAuthenticatedUser,
-  isAdminUser
-} from '../lib/auth';
-
-interface NavItem {
-  label: string;
-  href: string;
-}
+  type AuthUser,
+} from "../lib/auth";
+import type {
+  NavigationItem,
+  NotificationItem,
+  ProfileMenuItem,
+} from "./navigation/types";
 
 interface NavbarProps {
   siteTitle?: string;
-  menuItems?: NavItem[];
+  menuItems?: NavigationItem[];
 }
 
-const Navbar: React.FC<NavbarProps> = ({
-  siteTitle = 'FoodMatch',
-  menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'About Us', href: '/AboutUs' },
-    { label: 'Contact Us', href: '/ContactUs' }
-  ]
-}) => {
+const defaultMenuItems: NavigationItem[] = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/AboutUs" },
+  { label: "Contact Us", href: "/ContactUs" },
+];
+
+export default function Navbar({
+  siteTitle = "FoodMatch",
+  menuItems = defaultMenuItems,
+}: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [hasResolvedAuth, setHasResolvedAuth] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 40);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const authUser = getStoredAuthUser();
-      setIsAuthenticated(isAuthenticatedUser(authUser));
-      setIsAdmin(isAdminUser(authUser));
+    const handleAuthChange = () => {
+      setAuthUser(getStoredAuthUser());
+      setHasResolvedAuth(true);
     };
 
-    checkAuth();
+    handleAuthChange();
 
-    window.addEventListener('storage', checkAuth);
-    window.addEventListener(AUTH_STORAGE_EVENT, checkAuth);
+    window.addEventListener("storage", handleAuthChange);
+    window.addEventListener(AUTH_STORAGE_EVENT, handleAuthChange);
 
     return () => {
-      window.removeEventListener('storage', checkAuth);
-      window.removeEventListener(AUTH_STORAGE_EVENT, checkAuth);
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener(AUTH_STORAGE_EVENT, handleAuthChange);
     };
   }, [pathname]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  useEffect(() => {
+    setIsSidebarOpen(false);
+    setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMenuOpen) {
-        closeMenu();
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSidebarOpen(false);
+        setIsProfileOpen(false);
+        setIsNotificationsOpen(false);
       }
     };
 
-    if (isMenuOpen) {
-      document.addEventListener('keydown', handleEscape);
+    if (isSidebarOpen || isProfileOpen || isNotificationsOpen) {
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [isNotificationsOpen, isProfileOpen, isSidebarOpen]);
 
   useEffect(() => {
-    if (!isMenuOpen) {
-      document.body.classList.remove('menu-open');
-      document.documentElement.classList.remove('menu-open');
-      document.body.style.top = '';
+    if (!isSidebarOpen) {
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+      document.body.style.top = "";
       return;
     }
 
     const scrollY = window.scrollY;
     document.body.style.top = `-${scrollY}px`;
-    document.body.classList.add('menu-open');
-    document.documentElement.classList.add('menu-open');
+    document.body.classList.add("menu-open");
+    document.documentElement.classList.add("menu-open");
 
     return () => {
-      const lockedScrollY = Math.abs(parseInt(document.body.style.top || '0', 10));
+      const lockedScrollY = Math.abs(parseInt(document.body.style.top || "0", 10));
 
-      document.body.classList.remove('menu-open');
-      document.documentElement.classList.remove('menu-open');
-      document.body.style.top = '';
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+      document.body.style.top = "";
       window.scrollTo(0, lockedScrollY || scrollY);
     };
-  }, [isMenuOpen]);
+  }, [isSidebarOpen]);
+
+  const isAuthenticated = isAuthenticatedUser(authUser);
+  const isAdmin = isAdminUser(authUser);
+
+  const navigationItems = useMemo<NavigationItem[]>(() => {
+    if (!isAuthenticated) {
+      return menuItems;
+    }
+
+    const items = [
+      ...menuItems,
+      { label: "Dashboard", href: "/donor/dashboard" },
+      { label: "Profile", href: "/dashboard/profile" },
+    ];
+
+    if (isAdmin) {
+      items.push({ label: "Admin Messages", href: "/dashboard/messages" });
+    }
+
+    return items;
+  }, [isAdmin, isAuthenticated, menuItems]);
+
+  const profileItems = useMemo<ProfileMenuItem[]>(() => {
+    if (!hasResolvedAuth) {
+      return [];
+    }
+
+    if (!isAuthenticated) {
+      return [
+        { label: "Login", href: "/donor/login" },
+      ];
+    }
+
+    const items: ProfileMenuItem[] = [
+      { label: "Profile", href: "/dashboard/profile" },
+      { label: "Dashboard", href: "/donor/dashboard" },
+    ];
+
+    if (isAdmin) {
+      items.splice(1, 0, { label: "Admin Messages", href: "/dashboard/messages" });
+    }
+
+    return items;
+  }, [hasResolvedAuth, isAdmin, isAuthenticated]);
+
+  const notifications = useMemo<NotificationItem[]>(() => {
+    if (!isAuthenticated) {
+      return [
+        {
+          id: "welcome",
+          title: "Welcome to FoodMatch",
+          description:
+            "Sign in to manage your dashboard, profile, and donation activity.",
+          href: "/donor/login",
+          unread: true,
+        },
+      ];
+    }
+
+    const items: NotificationItem[] = [
+      {
+        id: "dashboard",
+        title: "Dashboard shortcuts ready",
+        description: "Jump back into your latest donation activity from one place.",
+        href: "/donor/dashboard",
+        unread: pathname !== "/donor/dashboard",
+      },
+      {
+        id: "profile",
+        title: "Profile details available",
+        description: "Review your contact info, location, and profile settings.",
+        href: "/dashboard/profile",
+        unread: pathname !== "/dashboard/profile",
+      },
+    ];
+
+    if (isAdmin) {
+      items.unshift({
+        id: "admin-messages",
+        title: "Admin inbox is ready",
+        description: "Open the messages dashboard to review recent contact requests.",
+        href: "/dashboard/messages",
+        unread: pathname !== "/dashboard/messages",
+      });
+    }
+
+    return items;
+  }, [isAdmin, isAuthenticated, pathname]);
+
+  const unreadCount = notifications.filter((item) => item.unread).length;
+
+  const closeAllOverlays = () => {
+    setIsSidebarOpen(false);
+    setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
+  };
+
+  const handleSidebarToggle = () => {
+    setIsSidebarOpen((currentValue) => !currentValue);
+    setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
+  };
+
+  const handleProfileToggle = () => {
+    setIsProfileOpen((currentValue) => !currentValue);
+    setIsSidebarOpen(false);
+    setIsNotificationsOpen(false);
+  };
+
+  const handleNotificationsToggle = () => {
+    setIsNotificationsOpen((currentValue) => !currentValue);
+    setIsSidebarOpen(false);
+    setIsProfileOpen(false);
+  };
 
   const handleLogout = () => {
     clearStoredAuthUser();
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    closeMenu();
-    router.push('/');
+    closeAllOverlays();
+    setAuthUser(null);
+    router.push("/");
   };
 
-  const getMenuItems = (): NavItem[] => {
-    if (isAuthenticated) {
-      const authenticatedMenuItems = [
-        { label: 'Home', href: '/' },
-        { label: 'About Us', href: '/AboutUs' },
-        { label: 'Contact Us', href: '/ContactUs' },
-        { label: 'Dashboard', href: '/donor/dashboard' }
-      ];
+  const navbarClassName = [
+    styles.navbar,
+    scrolled ? styles.navbarScrolled : styles.navbarTop,
+  ].join(" ");
 
-      if (isAdmin) {
-        authenticatedMenuItems.push({ label: 'Admin Messages', href: '/dashboard/messages' });
-      }
-
-      return authenticatedMenuItems;
-    }
-    return menuItems;
-  };
-
-  const currentMenuItems = getMenuItems();
+  const menuButtonClassName = [
+    styles.menuButton,
+    isSidebarOpen ? styles.menuButtonActive : "",
+  ].filter(Boolean).join(" ");
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-      <div className="navbar-container">
-        <div className="logo-section">
-          <Link href="/" className="navbar-logo" onClick={closeMenu}>
-            <span className="logo-icon">🍽️</span>
-            <span className="logo-text">{siteTitle}</span>
-          </Link>
+    <>
+      <nav className={navbarClassName}>
+        <div className={styles.inner}>
+          <div className={styles.brandGroup}>
+            <button
+              type="button"
+              onClick={handleSidebarToggle}
+              aria-expanded={isSidebarOpen}
+              aria-label="Open navigation drawer"
+              className={menuButtonClassName}
+            >
+              <Menu className={styles.menuIcon} />
+            </button>
+
+            <Link
+              href="/"
+              onClick={closeAllOverlays}
+              className={styles.brandLink}
+            >
+              <span className={styles.brandMark}>
+                FM
+              </span>
+
+              <div className={styles.brandText}>
+                <span className={styles.siteTitle}>
+                  {siteTitle}
+                </span>
+                <span className={styles.tagline}>
+                  Share More, Waste Less
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          <div className={styles.actions}>
+            <NotificationDropdown
+              isOpen={isNotificationsOpen}
+              items={notifications}
+              onClose={() => setIsNotificationsOpen(false)}
+              onToggle={handleNotificationsToggle}
+              unreadCount={unreadCount}
+            />
+
+            <ProfileDropdown
+              isAuthenticated={isAuthenticated}
+              isOpen={isProfileOpen}
+              items={profileItems}
+              name={authUser?.name}
+              onClose={() => setIsProfileOpen(false)}
+              onLogout={handleLogout}
+              onToggle={handleProfileToggle}
+            />
+          </div>
         </div>
+      </nav>
 
-        <div className="nav-section">
-          <button
-            className={`hamburger ${isMenuOpen ? 'active' : ''}`}
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
-            {currentMenuItems.map((item) => (
-              <li key={item.href} className="navbar-item">
-                <Link
-                  href={item.href}
-                  className={`navbar-link ${pathname === item.href ? 'active' : ''}`}
-                  onClick={closeMenu}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-
-            {isAuthenticated ? (
-              <li className="navbar-item">
-                <button
-                  className="navbar-link logout-link"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </li>
-            ) : (
-              <li className="navbar-item">
-                <Link
-                  href="/donor/login"
-                  className={`navbar-link auth-link ${pathname === '/donor/login' ? 'active' : ''}`}
-                  onClick={closeMenu}
-                >
-                  Login
-                </Link>
-              </li>
-            )}
-          </ul>
-
-          <div
-            className={`mobile-overlay ${isMenuOpen ? 'active' : ''}`}
-            onClick={closeMenu}
-          />
-        </div>
-      </div>
-    </nav>
+      <Sidebar
+        isAuthenticated={isAuthenticated}
+        isOpen={isSidebarOpen}
+        items={navigationItems}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
+        pathname={pathname}
+        siteTitle={siteTitle}
+      />
+    </>
   );
-};
-
-export default Navbar;
-
+}

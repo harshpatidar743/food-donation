@@ -103,7 +103,6 @@ const Page = () => {
     }
   }, [currentLocation]);
 
-  // Memoized fetchDonations to fix ESLint + stable deps
   const fetchDonations = useCallback(async (showToast = false) => {
     const hasCurrentCoordinates = hasCoordinates(currentLocation?.lat, currentLocation?.lng);
 
@@ -196,9 +195,8 @@ const Page = () => {
         toast.dismiss(toastId);
       }
     }
-  }, [activeSearch, currentLocation?.lat, currentLocation?.lng]);
+  }, [currentLocation]);
 
-  // Polling useEffect - ESLint fixed with stable fetchDonations
   useEffect(() => {
     fetchDonations(true);
     const intervalId = setInterval(() => {
@@ -332,9 +330,8 @@ const Page = () => {
                   {(["All", "Veg", "Non-veg"] as CategoryFilter[]).map((cat) => (
                     <button
                       key={cat}
-                      className={`filter-pill ${categoryFilter === cat ? "filter-pill--active" : ""} ${
-                        cat === "Veg" ? "filter-pill--veg" : cat === "Non-veg" ? "filter-pill--nonveg" : ""
-                      }`}
+                      className={`filter-pill ${categoryFilter === cat ? "filter-pill--active" : ""} ${cat === "Veg" ? "filter-pill--veg" : cat === "Non-veg" ? "filter-pill--nonveg" : ""
+                        }`}
                       onClick={() => setCategoryFilter(cat)}
                     >
                       {cat === "Veg" && "🥬 "}{cat === "Non-veg" && "🍗 "}{cat}

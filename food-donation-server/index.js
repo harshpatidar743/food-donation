@@ -10,6 +10,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const donationRoutes = require("./routes/donationRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const userRoutes = require("./routes/userRoutes");
 const { globalLimiter, contactLimiter } = require("./middleware/rateLimiter");
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/", donationRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", messageRoutes);
+app.use("/api/users", userRoutes);
 
 // Error handling middleware (must be after all routes)
 const errorMiddleware = require("./middleware/errorMiddleware");

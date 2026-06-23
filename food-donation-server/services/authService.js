@@ -77,16 +77,7 @@ exports.registerUser = async (data) => {
     role,
     location,
     address,
-    city,
-    organizationName,
-    registrationNumber,
-    organizationAddress,
-    organizationCertificateName,
-    businessName,
-    businessType,
-    ownerName,
-    businessAddress,
-    gstNumber
+    city
   } = data;
   const normalizedName = normalizeText(name);
   const normalizedEmail = normalizeEmail(email);
@@ -143,21 +134,8 @@ exports.registerUser = async (data) => {
     donorData.address = normalizedAddress;
   }
 
-  if (assignedUserType === 'organization') {
+  if (assignedUserType === 'organization' || assignedUserType === 'business/restaurant') {
     assignIfPresent(donorData, 'city', city);
-    assignIfPresent(donorData, 'organizationName', organizationName);
-    assignIfPresent(donorData, 'registrationNumber', registrationNumber);
-    assignIfPresent(donorData, 'organizationAddress', organizationAddress || normalizedAddress);
-    assignIfPresent(donorData, 'organizationCertificateName', organizationCertificateName);
-  }
-
-  if (assignedUserType === 'business/restaurant') {
-    assignIfPresent(donorData, 'city', city);
-    assignIfPresent(donorData, 'businessName', businessName);
-    assignIfPresent(donorData, 'businessType', businessType);
-    assignIfPresent(donorData, 'ownerName', ownerName);
-    assignIfPresent(donorData, 'businessAddress', businessAddress || normalizedAddress);
-    assignIfPresent(donorData, 'gstNumber', gstNumber);
   }
 
   const donor = new Donor(donorData);
